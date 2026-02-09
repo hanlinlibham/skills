@@ -1,6 +1,6 @@
 ---
 name: asset-monitor
-description: 资产异常波动日频监控。当用户需要对股票、指数、商品等资产进行日频异常波动监控，检测偏离历史均值超过2倍标准差的异常，并生成报告时使用此技能。依赖 windpy-sdk 获取数据。
+description: 资产异常波动日频监控与报告生成。当用户需要对股票、指数、商品等资产进行日频异常波动监控，检测偏离历史均值超过2倍标准差的异常，并生成Excel报告时使用此技能。
 ---
 
 # 资产异常波动日频监控
@@ -11,51 +11,34 @@ description: 资产异常波动日频监控。当用户需要对股票、指数�
 - 监控多资产类别的日频异常波动
 - 检测偏离历史均值超过2倍标准差的资产
 - 生成异常波动报告（Excel/Markdown）
-- 发送飞书/邮件通知
+- 批量分析申万三级行业、A股指数、商品期货、全球指数等
 
 ## 依赖
 
-本 skill **依赖 windpy-sdk** 获取数据，请先确保：
-1. windpy-sdk skill 可用
-2. Wind 金融终端已启动
+本 skill 依赖 windpy-sdk 获取数据。使用时需要：
+1. Wind 金融终端已启动
+2. 参考 windpy-sdk skill 了解数据获取方法
 
-## 使用方法
+## 监控脚本
 
-### 直接运行监控脚本
+使用 `scripts/monitor.py` 进行监控：
 
 ```bash
+# 基础监控
 python scripts/monitor.py
-```
 
-### 带通知推送
-
-```bash
+# 带报告输出
 python scripts/monitor.py --notify
-```
 
-### Python API
-
-```python
-from WindPy import w
-import pandas as pd
-
-# 1. 连接 Wind
-w.start()
-
-# 2. 获取资产列表并监控
-# 详见 scripts/monitor.py 实现
-
-# 3. 生成报告
-# 详见 scripts/reporter.py 实现
-
-w.stop()
+# 自定义参数
+python scripts/monitor.py --threshold 2.5 --min-days 60
 ```
 
 ## 监控资产范围
 
 | 资产类别 | 数量 | 说明 |
 |---------|------|------|
-| 申万三级行业 | 259个 | 全部三级行业指数 |
+| 申万三级行业 | 259个 | 全量三级行业指数 |
 | A股主要指数 | 9个 | 沪深300、中证500等 |
 | 中债指数 | 5个 | 中债总指数、国债指数等 |
 | 主流ETF | 8个 | 沪深300ETF、创业板ETF等 |
@@ -64,20 +47,17 @@ w.stop()
 
 **总计**: 298个资产
 
-## 核心逻辑
+## 核心监控逻辑
 
-### Z-Score 计算
-
-```
-Z = (今日涨跌幅 - 历史均值) / 历史标准差
-```
-
-### 异常判定
+### Z-Score 异常检测
 
 ```python
+# 计算Z值
+z_score = (今日涨跌幅 - 历史均值) / 历史标准差
+
+# 异常判定
 if abs(z_score) > 2.0:
     标记为异常
-    direction = "大涨" if z_score > 0 else "大跌"
 ```
 
 ### 筛选条件
@@ -86,29 +66,9 @@ if abs(z_score) > 2.0:
 - 历史标准差 > 0
 - 按 |Z| 绝对值降序排列
 
-## 监控脚本
+## 输出结果
 
-见 `scripts/monitor.py`
-
-**功能**:
-- 遍历所有配置的资产
-- 计算每个资产的 Z-Score
-- 识别异常波动资产
-- 生成 Excel 报告
-
-## 报告生成
-
-见 `scripts/reporter.py`
-
-**功能**:
-- 生成 Excel 报告
-- 生成 Markdown 报告
-- 发送飞书通知
-- 发送邮件报告
-
-## 输出示例
-
-### Excel 报告字段
+### Excel 报告
 
 | 字段 | 说明 |
 |------|------|
@@ -119,33 +79,67 @@ if abs(z_score) > 2.0:
 | z_score | Z值 |
 | direction | 大涨/大跌 |
 
-### Markdown 报告示例
+### 监控输出示例
 
-```markdown
-# 📊 资产异常波动报告
+```
+================================================================================
+📊 资产异常波动监控
+时间: 2026-02-09 06:22
+Z值阈值: 2.0
+================================================================================
 
-## 异常汇总
+[监控] 申万三级行业 (259个)
+  共 259 个资产
+  ⚠️ 印染(申万): +5.30% (Z=+3.33)
+  ⚠️ 纺织化学制品(申万): +5.35% (Z=+3.22)
+  发现 5 个异常
 
-| 资产 | 类别 | 涨跌幅 | Z值 | 方向 |
-|-----|-----|-------:|----:|:----:|
-| 白银 | 商品期货 | -14.02% | -4.39 | 📉 大跌 |
-| 印染 | 申万三级 | +5.30% | +3.33 | 🚀 大涨 |
+[监控] 商品期货 (8个)
+  ⚠️ 沪银近月: -14.02% (Z=-4.39)
+  发现 1 个异常
+
+[监控] 全球指数 (9个)
+  ⚠️ 道琼斯: +2.47% (Z=+2.34)
+  ⚠️ VIX波动率: -18.42% (Z=-2.26)
+  发现 2 个异常
+
+================================================================================
+✅ 监控完成，共发现 8 个异常
+================================================================================
 ```
 
-## 配置文件
+## 脚本使用方法
 
-见 `references/monitor-config-example.json`
+详见 `scripts/monitor.py` 代码注释。
 
-```json
-{
-  "threshold_z": 2.0,
-  "min_trading_days": 30,
-  "lookback_period": "-252TD",
-  "notification": {
-    "feishu": {"enabled": true},
-    "email": {"enabled": true}
-  }
-}
+### 命令行参数
+
+```bash
+python scripts/monitor.py --help
+
+Options:
+  --threshold FLOAT    Z-Score阈值，默认2.0
+  --min-days INT       最小交易日，默认30
+  --output DIR         输出目录，默认output
+  --notify             打印文本报告
+```
+
+### Python API
+
+```python
+# 直接导入脚本中的函数使用
+import sys
+sys.path.insert(0, 'scripts')
+from monitor import run_monitoring, generate_excel_report
+
+# 运行监控（需先连接Wind）
+from WindPy import w
+w.start()
+anomalies = run_monitoring(threshold_z=2.0)
+w.stop()
+
+# 生成报告
+excel_path = generate_excel_report(anomalies)
 ```
 
 ## 定时任务设置
@@ -156,10 +150,23 @@ if abs(z_score) > 2.0:
 30 15 * * * cd /path/to/skill && python scripts/monitor.py --notify
 ```
 
-## 参考文档
+## 配置文件
 
-- `references/monitor-config-example.json` - 配置示例
-- `references/usage-guide.md` - 详细使用指南
+配置示例见 `references/monitor-config-example.json`
+
+```json
+{
+  "monitor": {
+    "threshold_z": 2.0,
+    "min_trading_days": 30
+  },
+  "assets": {
+    "sw3_industry": {"enabled": true},
+    "ashare_index": {"enabled": true},
+    "commodity": {"enabled": true}
+  }
+}
+```
 
 ## 故障排查
 
@@ -168,3 +175,18 @@ if abs(z_score) > 2.0:
 | Wind连接失败 | Wind终端未启动 | 启动Wind终端 |
 | 无数据返回 | 无数据权限 | 联系Wind开通权限 |
 | 报告为空 | 今日无异常 | 正常现象 |
+
+## 与其他 Skill 的关系
+
+```
+asset-monitor (监控逻辑 + 报告生成)
+    ↓ 使用 WindPy 获取数据
+WindPy SDK (Wind 金融终端 API)
+```
+
+**注意**: asset-monitor 直接使用 WindPy，但字段和板块代码可参考 windpy-sdk skill 的文档。
+
+## 参考
+
+- windpy-sdk skill - WindPy 函数参考和字段速查
+- `references/monitor-config-example.json` - 配置示例
