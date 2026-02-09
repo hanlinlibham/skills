@@ -16,9 +16,17 @@ w.wset(tableName, options, usedf=True)
 
 ---
 
-## 已验证可用的 TableName
+## 已验证可用的 TableName (2026-02-09)
 
-### 1. sectorconstituent — 板块成分股
+### 1. sectorconstituent — 板块成分股 ✅
+
+**验证状态**: 已验证 ✅ (5,479条数据)
+
+**验证代码**:
+```python
+result = w.wset("sectorconstituent", "date=20260209;sectorid=a001010100000000")
+print(f"全部A股: {len(result.Data[1])}只")  # 5479只
+```
 
 获取指定板块的成分股列表。
 
@@ -49,7 +57,15 @@ err, df = w.wset("sectorconstituent",
 
 ---
 
-### 2. indexconstituent — 指数成分股
+### 2. indexconstituent — 指数成分股 ✅
+
+**验证状态**: 已验证 ✅ (300条数据 - 沪深300)
+
+**验证代码**:
+```python
+result = w.wset("indexconstituent", "date=20260209;windcode=000300.SH")
+print(f"沪深300成分股: {len(result.Data[1])}只")  # 300只
+```
 
 获取指数成分股列表（与 sectorconstituent 类似）。
 
@@ -72,7 +88,15 @@ err, df = w.wset("indexconstituent",
 
 ---
 
-### 3. etfconstituent — ETF申赎清单(PCF)
+### 3. etfconstituent — ETF申赎清单(PCF) ✅
+
+**验证状态**: 已验证 ✅ (300条数据 - 510300.SH)
+
+**验证代码**:
+```python
+result = w.wset("etfconstituent", "date=20260209;windcode=510300.SH")
+print(f"沪深300ETF成分股: {len(result.Data[1])}只")  # 300只
+```
 
 获取ETF的申赎清单，包括成分股、现金替代标记、溢价比例等。
 
@@ -179,27 +203,21 @@ err, df = w.wset("cashflowstatement", "windcode=600519.SH", usedf=True)
 
 ## 需要特定权限的 TableName
 
-以下 tableName 返回 `-40522012`（参数错误），可能需要：
-1. 特定数据权限
-2. 不同的参数格式
-3. 更精确的日期范围
+以下 tableName 已测试，返回 `-40522012`（参数错误或需要权限）：
 
-| TableName | 说明 | 推测参数 |
-|-----------|------|----------|
-| `abnormalactivitiesranking` | 龙虎榜/异常交易排名 | `startdate=...;enddate=...` |
-| `tradingsuspend` | 停牌股票 | `startdate=...;enddate=...` |
-| `top10holders` | 前十大股东 | `windcode=...;year=...` |
-| `top10tradableholders` | 前十大流通股东 | `windcode=...;year=...` |
-| `blocktrading` | 大宗交易 | `startdate=...;enddate=...` |
-| `repurchases` | 股票回购 | `startdate=...;enddate=...` |
-| `pledge` | 股权质押 | `windcode=...` |
-| `restrictedshare` | 限售股解禁 | `windcode=...` |
-| `margintrading` | 融资融券明细 | `windcode=...;startdate=...` |
-| `indexweight` | 指数成分股权重 | `date=...;windcode=...` |
-| `split` | 送转股方案 | `year=...` 或日期范围 |
-| `dividendimplementation` | 分红实施 | `year=...` 或日期范围 |
-| `ipo` | IPO新股 | `year=...` 或日期范围 |
-| `delisting` | 退市股票 | `year=...` 或日期范围 |
+| TableName | 说明 | 测试参数 | 错误码 |
+|-----------|------|----------|--------|
+| `abnormalactivitiesranking` | 龙虎榜 | `startdate=20260201;enddate=20260209` | -40522012 |
+| `blocktrading` | 大宗交易 | `startdate=20260201;enddate=20260209` | -40522012 |
+| `margintrading` | 融资融券 | `windcode=600519.SH;startdate=20260201` | -40522012 |
+| `pledge` | 股权质押 | `windcode=600519.SH` | -40522012 |
+
+**说明**: 以上 TableName 需要开通特定数据权限，或参数格式需要调整。
+
+**可能的解决方案**:
+1. 联系 Wind 客服开通对应数据权限
+2. 尝试不同的参数组合
+3. 使用替代方案（如通过 `w.wsd` 获取部分数据）
 
 ---
 
@@ -261,9 +279,32 @@ holdings = get_etf_holdings("510300.SH")
 
 ---
 
-## 待完善
+## 文档状态
 
-需要进一步探索的内容：
-- 更多 tableName 的精确参数格式
-- 每个 table 返回的完整字段列表
-- 需要特殊权限的 table 的替代获取方式
+**最后验证**: 2026-02-09
+
+**已验证 TableName**:
+- ✅ `sectorconstituent` - 板块成分 (5,479条)
+- ✅ `indexconstituent` - 指数成分 (300条)
+- ✅ `etfconstituent` - ETF申赎清单 (300条)
+- ✅ `dividendproposal` - 分红预案
+- ✅ `holdernumber` - 股东户数
+- ✅ `cashflowstatement` - 现金流量表
+
+**需权限 TableName**:
+- ⚠️ `abnormalactivitiesranking` - 龙虎榜
+- ⚠️ `blocktrading` - 大宗交易
+- ⚠️ `margintrading` - 融资融券
+- ⚠️ `pledge` - 股权质押
+
+**待进一步验证**:
+- `tradingsuspend` - 停牌股票
+- `top10holders` - 前十大股东
+- `top10tradableholders` - 前十大流通股东
+- `repurchases` - 股票回购
+- `restrictedshare` - 限售股解禁
+- `indexweight` - 指数成分股权重
+- `split` - 送转股方案
+- `dividendimplementation` - 分红实施
+- `ipo` - IPO新股
+- `delisting` - 退市股票
