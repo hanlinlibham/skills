@@ -117,6 +117,69 @@ result = w.wset("sectorconstituent", "date=20241231;sectorid=a001010100000000")
 | 估值 | `pe_ttm, pb_lf, mkt_cap_ard` |
 | 资金 | `mfd_inflow_xl, mfd_inflow_l, mfd_inflow_m, mfd_inflow_s` |
 
+## A股代码查询工具
+
+`scripts/windpy_stock_query.py` 提供便捷的A股代码查询功能。
+
+### 使用方法
+
+```python
+from scripts.windpy_stock_query import StockQuery
+
+query = StockQuery()
+
+# 根据名称查代码
+results = query.find_by_name("茅台")
+# 返回: [{'code': '600519.SH', 'name': '贵州茅台'}]
+
+# 根据代码查名称
+name = query.get_name("600519.SH")
+# 返回: '贵州茅台'
+
+# 获取股票详细信息
+info = query.get_info("600519.SH")
+# 返回: {'name': '贵州茅台', 'close': 1515.01, 'pe_ttm': 25.3, ...}
+
+# 获取最新价格
+price = query.get_price("600519.SH")
+# 返回: 1515.01
+
+# 搜索行业
+industries = query.search_industry("白酒")
+# 返回: [{'code': '850111.SI', 'name': '白酒Ⅲ(申万)'}]
+```
+
+### 命令行使用
+
+```bash
+# 按名称查询
+python scripts/windpy_stock_query.py 茅台
+
+# 按代码查询
+python scripts/windpy_stock_query.py 600519.SH
+```
+
+### 查询全部A股列表
+
+```python
+from WindPy import w
+w.start()
+
+# 全部A股 (5,479只)
+result = w.wset("sectorconstituent", "date=20260209;sectorid=a001010100000000")
+
+# 沪深300成分股 (300只)
+result = w.wset("sectorconstituent", "date=20260209;windcode=000300.SH")
+
+# 中证500成分股 (500只)
+result = w.wset("sectorconstituent", "date=20260209;windcode=000905.SH")
+
+# 申万三级行业 (259个)
+result = w.wset("sectorconstituent", "date=20260209;sectorid=a39901011i000000")
+
+w.stop()
+```
+
 ## 完整文档
 
 详见 `references/` 目录下的各专题文档。
