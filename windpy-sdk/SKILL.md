@@ -5,70 +5,112 @@ description: WindPy SDK 本地调用参考手册。当用户需要编写使用 W
 
 # WindPy SDK 本地调用参考手册
 
-## 触发条件
-
-当用户需要：
-- 编写使用 `from WindPy import w` 的 Python 代码
-- 查询 Wind API 某个函数的用法、参数或字段
-- 获取 A 股/债券/基金/期货/宏观数据的 Wind 代码
-- 调试 WindPy SDK 调用错误
-- 查找板块 SectorID、指数代码、字段名称
-
-## 连接管理
+## 快速开始
 
 ```python
 from WindPy import w
 
-w.start()              # 启动连接，默认超时120秒
-w.start(waitTime=60)   # 自定义超时60秒
-w.isconnected()        # 返回 True/False
-w.stop()               # 停止连接
+# 启动连接
+w.start()
+
+# 使用数据函数
+err, df = w.wsd("600519.SH", "close", "-30D", "", "PriceAdj=F", usedf=True)
+
+# 关闭连接
+w.stop()
 ```
 
-## 核心数据函数速查
+## 核心数据函数
 
-### w.wsd() — 日级时间序列
+### 1. wsd() - 日级时间序列
+获取日级历史数据，支持行情、估值、资金、技术指标。
 
 ```python
 err, df = w.wsd(codes, fields, beginTime, endTime, options, usedf=True)
 ```
 
-**常用示例**:
-```python
-# 获取沪深300近30天收盘价
-err, df = w.wsd("000300.SH", "close", "-30D", "", "", usedf=True)
+**参数说明**:
+- `codes`: 证券代码，如 "600519.SH" 或多代码 "600519.SH,000858.SZ"
+- `fields`: 字段，如 "close,open,high,low,volume,pct_chg"
+- `beginTime`: 开始时间，如 "-30D", "20240101"
+- `endTime`: 结束时间，如 "" 表示最新
+- `options`: 选项，如 "PriceAdj=F;Period=D"
 
-# 获取多个指数的日涨跌幅（前复权）
-err, df = w.wsd("000300.SH,000905.SH", "pct_chg", "20240101", "20241231", "PriceAdj=F", usedf=True)
+**Options 参数**:
+| 参数 | 值 | 说明 |
+|------|-----|------|
+| PriceAdj | F/B/CP | 前复权/后复权/债券全价 |
+| Period | D/W/M/Q/S/Y | 日/周/月/季/半年/年 |
+| Days | Trading/Weekdays/Alldays | 交易日/工作日/日历日 |
+
+**常用字段分类**:
+- 行情: open, high, low, close, volume, amt, pct_chg
+- 估值: pe_ttm, pb_lf, ps_ttm, mkt_cap_ard
+- 资金: mfd_inflow_xl, mfd_inflow_l, mfd_inflow_m, mfd_inflow_s
+- 技术指标: macd, kdj_k, kdj_d, rsi, ma5, ma10, ma20
+- 财务: roe_diluted, roa, gross_margin, eps_ttm
+
+**示例**:
+```python
+# 获取茅台近30天日线（前复权）
+err, df = w.wsd("600519.SH", "close,open,high,low,volume,pct_chg", 
+                "-30D", "", "PriceAdj=F", usedf=True)
+
+# 获取多只股票的估值指标
+err, df = w.wsd("600519.SH,000858.SZ", "pe_ttm,pb_lf,mkt_cap_ard", 
+                "", "", "", usedf=True)
 
 # 获取资金流向
-err, df = w.wsd("600519.SH", "mfd_inflow_xl,mfd_inflow_l,mfd_inflow_m,mfd_inflow_s", "-30D", "", "", usedf=True)
+err, df = w.wsd("600519.SH", "mfd_inflow_xl,mfd_inflow_l,mfd_inflow_m,mfd_inflow_s",
+                "-30D", "", "", usedf=True)
 ```
 
-### w.wss() — 截面快照
+详见: `references/wsd-function-reference.md`
+
+---
+
+### 2. wss() - 截面快照
+获取某个时间点的截面数据。
 
 ```python
 err, df = w.wss(codes, fields, options, usedf=True)
 ```
 
-**常用示例**:
+**示例**:
 ```python
-# 获取多品种多指标快照
-err, df = w.wss("600519.SH,000858.SZ", "sec_name,close,pct_chg,pe_ttm", "tradeDate=20241231", usedf=True)
+# 获取多股票当前估值
+err, df = w.wss("600519.SH,000858.SZ", "pe_ttm,pb_lf,mkt_cap_ard", 
+                "tradeDate=20241231", usedf=True)
 ```
 
-### w.wset() — 报表数据集
+---
+
+### 3. wset() - 报表数据集
+获取板块成分、指数成分等报表数据。
 
 ```python
 result = w.wset(tableName, options)
 ```
 
-**常用示例**:
+**常用 TableName**:
+| TableName | 功能 | Options 示例 |
+|-----------|------|--------------|
+| sectorconstituent | 板块成分股 | date=20241231;sectorid=a39901011i000000 |
+| indexconstituent | 指数成分股 | date=20241231;windcode=000300.SH |
+| etfconstituent | ETF成分 | date=20241231;windcode=510050.SH |
+
+**常用 SectorID**:
+| 板块 | SectorID |
+|------|----------|
+| 全部A股 | a001010100000000 |
+| 申万三级行业 | a39901011i000000 |
+
+**示例**:
 ```python
-# 获取申万三级行业列表（259个）
+# 获取申万三级行业列表
 result = w.wset("sectorconstituent", "date=20241231;sectorid=a39901011i000000")
-codes = result.Data[1]
-names = result.Data[2]
+codes = result.Data[1]   # 行业代码
+names = result.Data[2]   # 行业名称
 
 # 获取沪深300成分股
 result = w.wset("sectorconstituent", "date=20241231;windcode=000300.SH")
@@ -77,109 +119,135 @@ result = w.wset("sectorconstituent", "date=20241231;windcode=000300.SH")
 result = w.wset("sectorconstituent", "date=20241231;sectorid=a001010100000000")
 ```
 
-## 参考文档索引
+详见: `references/wset-tables.md`
 
-- `references/field-catalog.md` — 常用字段速查（行情/财务/资金流向/估值）
-- `references/sectorid-catalog.md` — 板块 SectorID 完整列表（指数/行业/概念）
-- `references/error-codes.md` — 错误码完整列表及解决方案
-- `references/wset-tables.md` — wset 报表数据集（板块成分/ETF清单/分红/股东户数）
-- `references/bond-fields.md` — 债券专用字段（YTM/久期/凸性/评级/中债估值）
-- `references/fund-fields.md` — 基金专用字段（NAV/基金类型/基金经理/ETF实时&日频涨跌幅）
-- `references/future-fields.md` — 期货专用字段（持仓量/结算价/保证金）
-- `references/technical-indicators.md` — 技术指标字段（MACD/RSI/KDJ/BOLL/CCI/WR）
-- `references/edb-indicators.md` — EDB 宏观经济指标代码（GDP/CPI/PMI/M2/利率）
+---
 
-## 常用代码速查
+### 4. 其他函数
 
-### 板块 SectorID
+| 函数 | 功能 | 说明 |
+|------|------|------|
+| wsi() | 分钟数据 | 1/5/15/30/60分钟K线 |
+| wst() | Tick逐笔 | 逐笔成交数据 |
+| wsq() | 实时行情 | 实时快照 |
+| wsee() | 板块截面 | 板块截面数据 |
+| tdays() | 交易日历 | 获取交易日序列 |
+| edb() | 宏观经济 | EDB指标数据 |
 
-| 板块 | SectorID |
-|------|----------|
-| 全部A股 | `a001010100000000` |
-| 申万三级行业 | `a39901011i000000` |
-| 沪深300 | `1000000098000000` |
-| 中证500 | `1000000099000000` |
+详见各函数的参考文档。
 
-### 常用指数代码
+---
 
-| 指数 | 代码 |
-|------|------|
-| 沪深300 | `000300.SH` |
-| 中证500 | `000905.SH` |
-| 创业板指 | `399006.SZ` |
-| 标普500 | `SPX.GI` |
+## A股代码查询
 
-### 常用字段
-
-| 类别 | 字段 |
-|------|------|
-| 行情 | `open, high, low, close, volume, amt, pct_chg` |
-| 估值 | `pe_ttm, pb_lf, mkt_cap_ard` |
-| 资金 | `mfd_inflow_xl, mfd_inflow_l, mfd_inflow_m, mfd_inflow_s` |
-
-## A股代码查询工具
-
-`scripts/windpy_stock_query.py` 提供便捷的A股代码查询功能。
-
-### 使用方法
-
-```python
-from scripts.windpy_stock_query import StockQuery
-
-query = StockQuery()
-
-# 根据名称查代码
-results = query.find_by_name("茅台")
-# 返回: [{'code': '600519.SH', 'name': '贵州茅台'}]
-
-# 根据代码查名称
-name = query.get_name("600519.SH")
-# 返回: '贵州茅台'
-
-# 获取股票详细信息
-info = query.get_info("600519.SH")
-# 返回: {'name': '贵州茅台', 'close': 1515.01, 'pe_ttm': 25.3, ...}
-
-# 获取最新价格
-price = query.get_price("600519.SH")
-# 返回: 1515.01
-
-# 搜索行业
-industries = query.search_industry("白酒")
-# 返回: [{'code': '850111.SI', 'name': '白酒Ⅲ(申万)'}]
-```
-
-### 命令行使用
-
-```bash
-# 按名称查询
-python scripts/windpy_stock_query.py 茅台
-
-# 按代码查询
-python scripts/windpy_stock_query.py 600519.SH
-```
-
-### 查询全部A股列表
+### 查询方法
 
 ```python
 from WindPy import w
 w.start()
 
-# 全部A股 (5,479只)
-result = w.wset("sectorconstituent", "date=20260209;sectorid=a001010100000000")
+# 1. 根据名称模糊查询
+result = w.wset("sectorconstituent", "date=20241231;sectorid=a001010100000000")
+for i in range(len(result.Data[2])):
+    if "茅台" in result.Data[2][i]:
+        print(f"{result.Data[1][i]} - {result.Data[2][i]}")
 
-# 沪深300成分股 (300只)
-result = w.wset("sectorconstituent", "date=20260209;windcode=000300.SH")
+# 2. 根据代码查询名称
+err, df = w.wss("600519.SH", "sec_name", "tradeDate=20241231", usedf=True)
+print(df.iloc[0]['SEC_NAME'])  # 贵州茅台
 
-# 中证500成分股 (500只)
-result = w.wset("sectorconstituent", "date=20260209;windcode=000905.SH")
-
-# 申万三级行业 (259个)
-result = w.wset("sectorconstituent", "date=20260209;sectorid=a39901011i000000")
+# 3. 获取最新价格
+err, df = w.wsd("600519.SH", "close", "", "", "", usedf=True)
+print(df.iloc[-1]['CLOSE'])
 
 w.stop()
 ```
 
-## 完整文档
+### 常用查询场景
 
-详见 `references/` 目录下的各专题文档。
+**场景1: 查找股票代码**
+```python
+# 在全部A股中搜索
+result = w.wset("sectorconstituent", "date=20241231;sectorid=a001010100000000")
+# 遍历 result.Data[2] (名称) 匹配关键字
+```
+
+**场景2: 获取指数成分股**
+```python
+# 沪深300
+result = w.wset("sectorconstituent", "date=20241231;windcode=000300.SH")
+
+# 中证500
+result = w.wset("sectorconstituent", "date=20241231;windcode=000905.SH")
+```
+
+**场景3: 获取行业分类**
+```python
+# 申万三级行业（259个）
+result = w.wset("sectorconstituent", "date=20241231;sectorid=a39901011i000000")
+```
+
+详见专门文档: `references/sw3-industries-guide.md`
+
+---
+
+## 参考文档索引
+
+| 文档 | 内容 |
+|------|------|
+| `references/wsd-function-reference.md` | WSD 函数完整参数手册 |
+| `references/sw3-industries-guide.md` | 申万三级行业使用指南 |
+| `references/wset-tables.md` | WSET 报表数据集 |
+| `references/field-catalog.md` | 常用字段速查 |
+| `references/sectorid-catalog.md` | 板块 SectorID 列表 |
+| `references/error-codes.md` | 错误码对照表 |
+| `references/bond-fields.md` | 债券专用字段 |
+| `references/fund-fields.md` | 基金专用字段 |
+| `references/future-fields.md` | 期货专用字段 |
+| `references/technical-indicators.md` | 技术指标字段 |
+| `references/edb-indicators.md` | EDB 宏观经济指标 |
+
+---
+
+## 常用代码速查
+
+### 常用指数代码
+
+| 指数 | 代码 |
+|------|------|
+| 沪深300 | 000300.SH |
+| 中证500 | 000905.SH |
+| 上证50 | 000016.SH |
+| 创业板指 | 399006.SZ |
+| 科创50 | 000688.SH |
+
+### 代码格式
+
+| 市场 | 格式 | 示例 |
+|------|------|------|
+| 上海主板 | XXXXXX.SH | 600519.SH |
+| 深圳主板 | XXXXXX.SZ | 000001.SZ |
+| 创业板 | XXXXXX.SZ | 300750.SZ |
+| 科创板 | XXXXXX.SH | 688001.SH |
+| 北交所 | XXXXXX.BJ | 430047.BJ |
+| 指数 | XXXXXX.SH/SZ | 000300.SH |
+| 申万行业 | XXXXXX.SI | 850111.SI |
+
+---
+
+## 错误处理
+
+```python
+err, df = w.wsd("600519.SH", "close", "-30D", "", "", usedf=True)
+
+if err == 0:
+    print(df)
+else:
+    print(f"Error code: {err}")
+    # 常见错误:
+    # -40522005: 代码错误
+    # -40522006: 字段错误
+    # -40522007: 时间错误
+```
+
+详见: `references/error-codes.md`
