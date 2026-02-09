@@ -1,225 +1,153 @@
 ---
 name: windpy-sdk
-description: WindPy SDK 数据获取工具包。提供标准化的 Wind 金融数据获取接口，包括行情数据、财务数据、板块成分、宏观经济等。其他 skill 可通过导入此模块获取 Wind 数据，无需直接调用 WindPy。
+description: WindPy SDK 本地调用参考手册。当用户需要编写使用 Wind 金融终端 Python API (from WindPy import w) 的代码时触发。覆盖全部数据函数的签名、参数、返回值和示例，以及常用板块代码和字段速查。
 ---
 
-# WindPy SDK 数据获取工具包
+# WindPy SDK 本地调用参考手册
 
-## 定位
+## 触发条件
 
-本 skill 是 **底层数据获取工具包**，专注于：
-- WindPy 连接管理
-- 标准化数据获取接口
-- 数据格式转换 (DataFrame)
-- 错误处理和重试
-
-其他 skill（如 asset-monitor）应 **导入此模块** 获取数据，而不是直接调用 WindPy。
-
-## 安装
-
-```python
-# 将 windpy_sdk 添加到 Python 路径
-import sys
-sys.path.insert(0, '/path/to/skills/windpy-sdk')
-
-from windpy_sdk import WindClient, get_sector_constituents, get_historical_returns
-```
+当用户需要：
+- 编写使用 `from WindPy import w` 的 Python 代码
+- 查询 Wind API 某个函数的用法、参数或字段
+- 获取 A 股/债券/基金/期货/宏观数据的 Wind 代码
+- 调试 WindPy SDK 调用错误
 
 ## 快速开始
 
 ```python
-from windpy_sdk import WindClient
+from WindPy import w
 
-# 使用上下文管理器（自动连接/断开）
-with WindClient() as client:
-    # 获取板块成分股
-    stocks = client.get_sector_constituents('a001010100000000')
-    
-    # 获取历史行情
-    df = client.get_daily_data('000300.SH', 'close,pct_chg', '-30D')
-    
-    # 获取实时行情
-    snapshot = client.get_realtime_quote(['000300.SH', '000905.SH'])
+# 连接
+w.start()
+
+# 获取数据
+err, df = w.wsd("000300.SH", "close", "-30D", "", "", usedf=True)
+
+# 断开
+w.stop()
 ```
 
-## 核心类
+## 核心数据函数
 
-### WindClient
-
-WindPy 连接管理客户端。
+### w.wsd() — 日级时间序列
 
 ```python
-class WindClient:
-    def __enter__(self): ...  # 自动连接
-    def __exit__(self, ...): ...  # 自动断开
-    
-    # 板块数据
-    def get_sector_constituents(self, sectorid, date=None) -> pd.DataFrame:
-        """获取板块成分股"""
-        
-    def get_sector_list(self, sector_type='sw3') -> pd.DataFrame:
-        """获取板块列表（如申万三级行业）"""
-        
-    # 历史数据
-    def get_daily_data(self, codes, fields, start_date, end_date=None, **options) -> pd.DataFrame:
-        """获取日级历史数据 (wsd)"""
-        
-    def get_minute_data(self, codes, fields, start_time, end_time, barsize=1) -> pd.DataFrame:
-        """获取分钟数据 (wsi)"""
-        
-    # 截面数据
-    def get_snapshot(self, codes, fields, trade_date=None) -> pd.DataFrame:
-        """获取截面快照 (wss)"""
-        
-    def get_realtime_quote(self, codes, fields=None) -> pd.DataFrame:
-        """获取实时行情 (wsq)"""
-        
-    # 报表数据
-    def get_etf_list(self, date=None) -> pd.DataFrame:
-        """获取 ETF 列表"""
-        
-    def get_index_constituents(self, index_code, date=None) -> pd.DataFrame:
-        """获取指数成分股"""
+w.wsd(codes, fields, beginTime, endTime, options, usedf=True)
 ```
 
-## 便捷函数
+| 参数 | 类型 | 必选 | 说明 |
+|------|------|------|------|
+| codes | str/list | 是 | 证券代码。多品种时 fields 只能单个 |
+| fields | str/list | 是 | 指标。如 `"close,pct_chg,volume"` |
+| beginTime | str/datetime | 否 | 起始日期。支持 `"2024-01-01"`, `"-30D"`, `"IPO"` |
+| endTime | str/datetime | 否 | 截止日期。默认当前日期 |
+| options | str | 否 | 参数字符串 |
+
+**常用 options**:
+- `PriceAdj=F` 前复权 / `B` 后复权
+- `Period=D` 日 / `W` 周 / `M` 月
+- `Days=Trading` 交易日(默认)
+
+**返回值**: `(ErrorCode, DataFrame)` 当 `usedf=True`
 
 ```python
-from windpy_sdk import (
-    get_sector_constituents,      # 获取板块成分
-    get_historical_returns,       # 获取历史收益率
-    get_realtime_quote,           # 获取实时行情
-    get_index_list,               # 获取指数列表
-    get_etf_list,                 # 获取 ETF 列表
-    get_bond_index_list,          # 获取债券指数列表
-)
+# 获取沪深300近30天收盘价
+err, df = w.wsd("000300.SH", "close", "-30D", "", "", usedf=True)
 
-# 无需管理连接，函数内部自动处理
-stocks = get_sector_constituents('a39901011i000000')  # 申万三级行业
-returns = get_historical_returns('000300.SH', '-252TD')  # 过去一年日收益
-```
-
-## 常量定义
-
-```python
-from windpy_sdk.constants import (
-    # 板块 SectorID
-    SECTOR_ALL_A_SHARES,      # 全部A股
-    SECTOR_SW3_INDUSTRIES,    # 申万三级行业
-    SECTOR_HS300,             # 沪深300
-    SECTOR_CSI500,            # 中证500
-    
-    # 常用指数代码
-    INDEX_HS300,
-    INDEX_CSI500,
-    INDEX_SSE50,
-    
-    # 常用商品代码
-    COMMODITY_GOLD,
-    COMMODITY_SILVER,
-    COMMODITY_COPPER,
+# 获取多个指数的日涨跌幅
+err, df = w.wsd(
+    "000300.SH,000905.SH", 
+    "pct_chg", 
+    "20240101", "20241231", 
+    "", usedf=True
 )
 ```
 
-## 依赖
-
-- WindPy (Wind 金融终端 Python API)
-- pandas
-- numpy
-
-## 使用示例
-
-### 示例1: 获取申万三级行业列表
+### w.wss() — 截面快照
 
 ```python
-from windpy_sdk import WindClient
-
-with WindClient() as client:
-    # 获取259个申万三级行业
-    sw3_industries = client.get_sector_list('sw3')
-    print(f"获取到 {len(sw3_industries)} 个申万三级行业")
-    print(sw3_industries.head())
+w.wss(codes, fields, options, usedf=True)
 ```
 
-### 示例2: 获取历史收益率
-
 ```python
-from windpy_sdk import get_historical_returns
-
-# 获取过去一年日收益率
-returns = get_historical_returns(
-    codes='000300.SH',
-    start_date='-252TD',
-    field='pct_chg'
+# 获取多品种多指标快照
+err, df = w.wss(
+    "600519.SH,000858.SZ",
+    "sec_name,close,pct_chg,pe_ttm",
+    "tradeDate=20241231", usedf=True
 )
-
-# 计算统计量
-mean_ret = returns.mean()
-std_ret = returns.std()
 ```
 
-### 示例3: 批量获取多资产数据
+### w.wset() — 报表数据集
+
+获取板块成分、指数成分等。
 
 ```python
-from windpy_sdk import WindClient
+# 获取申万三级行业列表（259个）
+result = w.wset("sectorconstituent", "date=20241231;sectorid=a39901011i000000")
+codes = result.Data[1]  # 行业代码
+names = result.Data[2]  # 行业名称
 
-with WindClient() as client:
-    # 获取多个指数的实时行情
-    indices = ['000300.SH', '000905.SH', '000016.SH']
-    quotes = client.get_realtime_quote(indices)
-    
-    # 获取申万三级行业的日涨跌幅
-    sw3_codes = client.get_sector_list('sw3')['code'].tolist()
-    daily_returns = client.get_daily_data(
-        codes=sw3_codes[:10],  # 先取前10个测试
-        fields='pct_chg',
-        start_date='-30D'
-    )
+# 获取沪深300成分股
+result = w.wset("sectorconstituent", "date=20241231;windcode=000300.SH")
+
+# 获取全部A股
+result = w.wset("sectorconstituent", "date=20241231;sectorid=a001010100000000")
 ```
 
-## 错误处理
+## 常用板块 SectorID
 
-```python
-from windpy_sdk import WindClient, WindDataError
+详见 `references/sector-ids.md`
 
-try:
-    with WindClient() as client:
-        data = client.get_daily_data('INVALID.CODE', 'close', '-30D')
-except WindDataError as e:
-    print(f"数据获取失败: {e}")
-except ConnectionError as e:
-    print(f"Wind 连接失败: {e}")
-```
+| 板块 | SectorID | 说明 |
+|------|----------|------|
+| 全部A股 | `a001010100000000` | 沪深两市全部A股 |
+| 申万三级行业 | `a39901011i000000` | 259个三级行业 |
+| 沪深300 | `1000000098000000` | 沪深300成分 |
+| 中证500 | `1000000099000000` | 中证500成分 |
+| ETF板块 | `a002010300000000` | 全部ETF |
 
-## 配置
+## 常用字段速查
 
-```python
-# windpy_sdk/config.py
-WIND_CONFIG = {
-    'start_timeout': 120,      # 连接超时
-    'retry_times': 3,          # 重试次数
-    'default_date_format': '%Y%m%d',
-    'use_cache': True,         # 是否缓存数据
-    'cache_dir': '~/.windpy_cache',
-}
-```
+详见 `references/field-catalog.md`
 
-## 与其他 Skill 的关系
+| 类别 | 常用字段 |
+|------|---------|
+| 行情 | `open, high, low, close, pre_close, volume, amt, pct_chg` |
+| 估值 | `pe_ttm, pb_lf, ps_ttm, mkt_cap_ard` |
+| 财务 | `roe_ttm, roa_ttm, grossprofit_margin, eps_ttm` |
+| 资金 | `mfd_inflow_xl, mfd_inflow_l, mfd_inflow_m, mfd_inflow_s` |
 
-```
-asset-monitor (监控逻辑)
-    ↓ 导入
-windpy-sdk (数据获取)
-    ↓ 调用
-WindPy (Wind API)
-    ↓ 连接
-Wind 金融终端
-```
+## 常用指数代码
 
-**原则**: 上层 skill 只依赖 windpy-sdk，不直接调用 WindPy。
+| 指数 | 代码 |
+|------|------|
+| 沪深300 | `000300.SH` |
+| 中证500 | `000905.SH` |
+| 上证50 | `000016.SH` |
+| 创业板指 | `399006.SZ` |
+| 科创50 | `000688.SH` |
+| 标普500 | `SPX.GI` |
+| 纳斯达克 | `IXIC.GI` |
+| 恒生指数 | `HSI.HI` |
 
-## 参考
+## 常用商品期货代码
 
-- `references/field-catalog.md` - Wind 字段速查
-- `references/sector-ids.md` - 板块 SectorID 列表
-- `references/error-codes.md` - 错误码说明
+| 品种 | 代码 |
+|------|------|
+| 黄金 | `AU00.SHF` |
+| 白银 | `AG00.SHF` |
+| 铜 | `CU00.SHF` |
+| 原油 | `SC00.INE` |
+
+## 示例脚本
+
+见 `scripts/windpy-examples.py`
+
+## 参考文档
+
+- `references/field-catalog.md` - 字段速查手册
+- `references/sector-ids.md` - 板块SectorID完整列表
+- `references/error-codes.md` - 错误码对照表
+- `references/wset-tables.md` - wset报表数据集
