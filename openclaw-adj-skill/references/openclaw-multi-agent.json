@@ -1,0 +1,211 @@
+{
+  "_comment": "OpenClaw Multi-Agent Configuration Template",
+  "env": {
+    "MOONSHOT_API_KEY": "your-moonshot-api-key",
+    "BRAVE_API_KEY": "your-brave-api-key",
+    "TAVILY_API_KEY": "your-tavily-api-key"
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "moonshot": {
+        "baseUrl": "https://api.moonshot.cn/v1",
+        "apiKey": "${MOONSHOT_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "kimi-k2.5",
+            "name": "Kimi K2.5",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 256000,
+            "maxTokens": 32768
+          },
+          {
+            "id": "kimi-k2-thinking",
+            "name": "Kimi K2 Thinking",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 256000,
+            "maxTokens": 32768
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "list": [
+      {
+        "id": "main",
+        "name": "Shandian",
+        "default": true,
+        "identity": {
+          "name": "Shandian",
+          "emoji": "⚡️"
+        },
+        "workspace": "/home/node/.openclaw/workspace",
+        "agentDir": "/home/node/.openclaw/agents/main/agent",
+        "model": "moonshot/kimi-k2.5",
+        "sandbox": {
+          "mode": "off"
+        },
+        "tools": {
+          "allow": ["*"]
+        },
+        "groupChat": {
+          "mentionPatterns": ["@shandian", "@lightning", "@闪电", "@main"]
+        }
+      },
+      {
+        "id": "work",
+        "name": "Work",
+        "identity": {
+          "name": "Work",
+          "emoji": "💼"
+        },
+        "workspace": "/home/node/.openclaw/workspace/work",
+        "agentDir": "/home/node/.openclaw/agents/work/agent",
+        "model": "moonshot/kimi-k2.5",
+        "sandbox": {
+          "mode": "off"
+        },
+        "tools": {
+          "allow": [
+            "read",
+            "web_search",
+            "tavily_search",
+            "sessions_list",
+            "sessions_history",
+            "sessions_send",
+            "sessions_spawn",
+            "session_status"
+          ],
+          "deny": [
+            "write",
+            "edit",
+            "apply_patch",
+            "browser",
+            "canvas",
+            "nodes",
+            "cron"
+          ]
+        },
+        "groupChat": {
+          "mentionPatterns": ["@work", "@工作", "@办公"]
+        }
+      },
+      {
+        "id": "research",
+        "name": "Research",
+        "identity": {
+          "name": "Research",
+          "emoji": "🔬"
+        },
+        "workspace": "/home/node/.openclaw/workspace/research",
+        "agentDir": "/home/node/.openclaw/agents/research/agent",
+        "model": "moonshot/kimi-k2-thinking",
+        "sandbox": {
+          "mode": "off"
+        },
+        "tools": {
+          "allow": [
+            "read",
+            "web_search",
+            "tavily_search",
+            "browser",
+            "sessions_list",
+            "sessions_history"
+          ],
+          "deny": [
+            "write",
+            "edit",
+            "apply_patch",
+            "exec",
+            "bash"
+          ]
+        },
+        "groupChat": {
+          "mentionPatterns": ["@research", "@研究", "@调研", "@分析"]
+        }
+      },
+      {
+        "id": "coding",
+        "name": "Coding",
+        "identity": {
+          "name": "Coding",
+          "emoji": "💻"
+        },
+        "workspace": "/home/node/.openclaw/workspace/coding",
+        "agentDir": "/home/node/.openclaw/agents/coding/agent",
+        "model": "moonshot/kimi-k2.5",
+        "sandbox": {
+          "mode": "off"
+        },
+        "tools": {
+          "allow": [
+            "read",
+            "write",
+            "edit",
+            "apply_patch",
+            "exec",
+            "bash",
+            "web_search",
+            "sessions_list",
+            "sessions_history"
+          ],
+          "deny": [
+            "canvas",
+            "nodes",
+            "cron"
+          ]
+        },
+        "groupChat": {
+          "mentionPatterns": ["@code", "@coding", "@编程", "@代码", "@dev"]
+        }
+      }
+    ],
+    "defaults": {
+      "model": { "primary": "moonshot/kimi-k2.5" },
+      "maxConcurrent": 4,
+      "subagents": { "maxConcurrent": 8 }
+    }
+  },
+  "tools": {
+    "agentToAgent": {
+      "enabled": true,
+      "allow": ["work", "research", "coding"]
+    }
+  },
+  "bindings": [
+    {
+      "agentId": "main",
+      "match": { "channel": "telegram" }
+    }
+  ],
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "dmPolicy": "open",
+      "botToken": "your-bot-token",
+      "allowFrom": ["*"],
+      "groupPolicy": "allowlist",
+      "streamMode": "partial"
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "lan",
+    "trustedProxies": [
+      "172.18.0.1",
+      "172.18.0.0/16",
+      "127.0.0.1"
+    ],
+    "auth": {
+      "mode": "token",
+      "token": "generate-a-secure-random-token"
+    }
+  }
+}
