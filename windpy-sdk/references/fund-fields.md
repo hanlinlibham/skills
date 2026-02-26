@@ -98,12 +98,56 @@ w.stop()
 
 ---
 
+## 基金信息字段补充（wss 截面数据）
+
+以下字段在 `wss()` 中已验证可用：
+
+| 字段 | 含义 | options 参数 | 说明 |
+|------|------|-------------|------|
+| `fund_type` | 基金类型 | — | 契约型开放式等 |
+| `fund_investtype` | 投资类型 | — | 灵活配置型/QDII混合型等 |
+| `fund_fundscale` | 基金规模 | `rptDate=YYYYMMDD` | 元，需指定报告期 |
+| `fund_setupdate` | 成立日期 | — | datetime |
+| `fund_maturitydate` | 到期日期 | — | 封闭式基金 |
+| `fund_benchmark` | 业绩基准 | — | 文字描述 |
+| `fund_managementfeeratio` | 管理费率 | — | 百分比 |
+
+### 区间收益率（wss）
+
+| 字段 | 含义 | 必须 options |
+|------|------|-------------|
+| `NAV_adj_return` | 复权净值区间收益率(%) | `startDate=YYYYMMDD;endDate=YYYYMMDD` |
+
+```python
+# 获取基金近 1 年区间收益率
+df = wss("110011.OF,000001.OF", "NAV_adj_return", "startDate=20250225;endDate=20260225")
+```
+
+### 净值日频涨跌（wsd）
+
+| 字段 | 含义 | 函数 |
+|------|------|------|
+| `nav` | 单位净值 | wsd |
+| `nav_acc` | 累计净值 | wsd |
+| `nav_adj` | 复权净值 | wsd |
+| `NAV_adj_return` | 复权净值日收益率(%) | wsd |
+
+```python
+# 基金复权净值及日收益率时间序列
+df = wsd("110011.OF", "nav,nav_adj,NAV_adj_return", "-30D")
+```
+
+---
+
 ## 注意事项
 
 1. **净值更新时间：** 一般 T 日 21:00 后更新 T 日净值
 2. **QDII 基金：** 净值更新可能延迟 1-2 个交易日
 3. **货币 ETF：** 使用 `rt_nav` 获取实时净值/每万份收益
 4. **LOF 基金：** 代码后缀 .SZ/.SH，同时有场内交易和场外净值
+5. **基金规模：** `fund_fundscale` 需指定 `rptDate`，否则返回 None
+6. **区间收益率：** `NAV_adj_return` 在 wss 中需 `startDate/endDate`，在 wsd 中直接返回日收益率
+7. **风险指标：** `return_1m/risk_sharpe` 等字段名在 wss 中返回 None（可能需要额外权限或不同的字段名），建议自行用净值序列计算
 
 ---
 
