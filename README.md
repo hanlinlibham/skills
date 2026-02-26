@@ -1,13 +1,39 @@
 # Skills
 
-Claude Code 技能集 — 金融数据、资产监控、多代理协作。
+Claude Code 技能集 — 金融数据、文档处理、数据可视化、多代理协作。
 
 ## 目录
 
+### 金融与研究
+
 | 技能 | 说明 |
 |------|------|
-| [windpy-sdk](windpy-sdk/) | Wind 金融终端 Python API — 17 个函数、常驻服务模式、13 份参考文档，覆盖 A 股/债券/基金/期货/期权/外汇/宏观 |
+| [windpy-sdk](windpy-sdk/) | Wind 金融终端 Python API — 17 个函数、常驻服务、13 份参考文档，覆盖 A 股/债券/基金/期货/期权/外汇/宏观 |
 | [asset-monitor](asset-monitor/) | 资产异常波动日频监控 — Z-Score 检测偏离 > 2σ 的异常资产，自动生成 Excel 报告 |
+| [technical-analyst](technical-analyst/) | K 线图技术分析 — 趋势识别、支撑阻力位、形态分析、概率场景推演 |
+
+### 文档与可视化
+
+| 技能 | 说明 |
+|------|------|
+| [pptx](pptx/) | PowerPoint 创建/编辑/分析 — 布局、母版、图表、演讲备注，含 OOXML schema |
+| [docx](docx/) | Word 文档创建/编辑 — 修订追踪、批注、格式保留、文本提取 |
+| [xlsx](xlsx/) | Excel 电子表格 — 公式、格式、数据分析、可视化、公式重算 |
+| [pdf](pdf/) | PDF 处理工具包 — 文本/表格提取、创建、合并/拆分、表单填写 |
+| [plotly](plotly/) | Plotly 交互式可视化 — 散点图/折线图/热力图/3D/地图/金融图表，输出 HTML 或静态图片 |
+
+### 写作与工具
+
+| 技能 | 说明 |
+|------|------|
+| [humanizer](humanizer/) | AI 文本去机器痕迹 — 基于 Wikipedia 标准，修复夸张修辞、破折号滥用、AI 典型词汇等 30+ 种模式 |
+| [skill-creator](skill-creator/) | 技能创建指南 — 帮助创建和优化 Claude Code skill |
+| [find-skills](find-skills/) | 技能发现与安装 — 从开源技能生态中搜索和安装 skill |
+
+### 基础设施
+
+| 技能 | 说明 |
+|------|------|
 | [openclaw-adj-skill](openclaw-adj-skill/) | OpenClaw 多代理配置 — 4 个专用代理（闪电/工作/研究/编程）协作部署 |
 
 ## 使用方式
@@ -22,55 +48,9 @@ git clone https://github.com/hanlinlibham/skills .claude/skills
 cp -r windpy-sdk <your-project>/.claude/skills/windpy-sdk
 ```
 
-## 技能详情
-
-### windpy-sdk
-
-Wind 金融终端 Python API 完整调用技能。
-
-**架构：** HTTP 常驻服务 (`wind_server.py`) + 客户端库 (`wind_client.py`)，避免每次调用弹出 Wind 登录窗口。macOS / Windows / Linux 通用。
-
-**17 个 API 函数：**
-- 核心数据：`wsd` `wss` `wset` `wsq` `edb` `wsi` `wst`
-- 板块：`wsee` `wses` `wsed`
-- 交易日：`tdays` `tdaysoffset` `tdayscount`
-- 辅助：`weqs` `htocode` `wai` `wgel`
-
-**13 份参考文档（3,300+ 行）：**
-
-| 文档 | 内容 |
-|------|------|
-| field-catalog | 行情/财务/资金/估值字段 |
-| sectorid-catalog | 板块 SectorID 完整目录 |
-| wset-tables | wset 报表数据集 |
-| error-codes | 错误码及解决方案 |
-| bond-fields | 债券字段 + 中债指数 CBA*.CS |
-| fund-fields | 基金字段 + 区间收益率 |
-| future-fields | 期货字段 + 30+ 品种速查 |
-| options-fields | ETF 期权合约 + Greeks |
-| fx-fields | 15 个外汇货币对 |
-| edb-indicators | 宏观指标 + 大宗商品 EDB |
-| technical-indicators | MACD/RSI/KDJ/BOLL |
-| options-cheatsheet | 函数 options 参数速查 |
-| asset-type-codes | 资产类型代码 |
-
-### asset-monitor
-
-资产异常波动监控系统：
-- 监控 298 个资产（申万三级 259 + A 股指数 9 + 债券 5 + ETF 8 + 商品 8 + 全球指数 9）
-- Z-Score 异常检测（偏离历史均值 > 2σ）
-- 自动生成 Excel 报告，支持定时任务
-
-### openclaw-adj-skill
-
-OpenClaw 多代理配置系统：
-- 4 代理协作（Shandian 主代理 + Work/Research/Coding）
-- 代理间通信和权限管理
-- 沙箱配置和工作空间管理
-
 ## 依赖关系
 
 ```
 asset-monitor ──uses──→ WindPy SDK ──ref──→ windpy-sdk skill
-openclaw-adj-skill                          (独立，无依赖)
+其余 skill 均独立，无交叉依赖
 ```
