@@ -11,7 +11,16 @@ allowed-tools: Bash(python*), Bash(curl*), Read, Grep, Glob
 
 ## 连接方式
 
-### 常驻服务模式（推荐，macOS/Windows/Linux 通用）
+根据操作系统选择合适的连接方式：
+
+| 平台 | 推荐模式 | 适用场景 |
+|------|----------|----------|
+| **macOS / Linux** | 常驻服务 | 自动化、批量查询、长任务 |
+| **Windows** | 直连模式 | 交互式、短任务、快速查询 |
+
+> **注意**：Windows 下常驻服务模式可能因 WindPy 线程兼容性问题导致连接不稳定，建议优先使用直连模式。
+
+### 常驻服务模式（macOS / Linux 推荐）
 
 避免每次调用弹出 Wind 登录窗口，适合自动化与批量查询。
 
@@ -19,16 +28,10 @@ allowed-tools: Bash(python*), Bash(curl*), Read, Grep, Glob
 # macOS / Linux
 python scripts/wind_server.py &
 
-# Windows (CMD)
-start /B python scripts\wind_server.py
-
-# Windows (PowerShell)
-Start-Process python -ArgumentList "scripts\wind_server.py" -WindowStyle Hidden
-
 # 健康检查
 curl http://localhost:18888/health
 
-# 停止（跨平台，通过 HTTP）
+# 停止（通过 HTTP）
 curl http://localhost:18888/shutdown
 ```
 
@@ -46,14 +49,35 @@ df = wsi("600519.SH", "close,volume", "-0D 09:30:00", "", "BarSize=5")
 dates = tdays("20260101", "20260226")
 ```
 
-### 直连模式（交互式或短任务）
+### 直连模式（Windows 推荐，全平台通用）
 
-不需要常驻服务，直接调用 WindPy。每次 `w.start()` 可能弹出 Wind 登录窗口。
+直接调用 WindPy，无需启动常驻服务。每次 `w.start()` 可能弹出 Wind 登录窗口。
 
 ```python
 from WindPy import w
 w.start()
 err, df = w.wsd("000300.SH", "close", "-30D", "", "", usedf=True)
+w.stop()
+```
+
+**Windows 完整示例**：
+
+```python
+import pandas as pd
+import numpy as np
+from WindPy import w
+
+# 连接 Wind
+w.start()
+
+# 获取数据
+err, df = w.wsd("000300.SH", "close,pct_chg", "-30D", "", "", usedf=True)
+
+# 处理数据
+if err == 0:
+    print(df)
+
+# 断开连接
 w.stop()
 ```
 
@@ -128,6 +152,52 @@ w.stop()
 - [references/edb-indicators.md](references/edb-indicators.md) — EDB 宏观指标 + 大宗商品价格
 - [references/options-cheatsheet.md](references/options-cheatsheet.md) — 函数 options 参数速查
 - [references/asset-type-codes.md](references/asset-type-codes.md) — 资产类型代码
+
+## 跨平台路径说明
+
+Python 中路径分隔符跨平台兼容，以下写法均可：
+
+```python
+# 正斜杠（推荐，全平台通用）
+sys.path.insert(0, ".claude/skills/windpy-sdk/scripts")
+
+# 反斜杠（Windows 也支持，但需注意转义）
+sys.path.insert(0, ".claude\\skills\\windpy-sdk\\scripts")
+
+# os.path.join（最保险）
+sys.path.insert(0, os.path.join(".claude", "skills", "windpy-sdk", "scripts"))
+```
+
+## Windows 中文乱码解决方案
+
+Windows 控制台默认使用 GBK 编码，可能导致 Wind 返回的中文数据显示为乱码。在脚本开头添加以下代码：
+
+```python
+import sys
+import io
+
+# 修复 Windows 控制台中文乱码
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
+from WindPy import w
+w.start()
+
+# 现在中文显示正常
+err, df = w.wss('600519.SH', 'sec_name,close', '', usedf=True)
+print(df)  # 显示: 贵州茅台 而不是 ����ę́
+
+w.stop()
+```
+
+## 故障排除
+
+| 问题 | 平台 | 解决方案 |
+|------|------|----------|
+| 常驻服务返回 502 | Windows | 改用直连模式 |
+| 连接被重置 | Windows | 改用直连模式 |
+| 中文乱码 | Windows | 正常现象，数据获取正常，仅显示问题 |
+| `ModuleNotFoundError: No module named 'WindPy'` | 全平台 | 确保已安装 Wind 金融终端并配置 Python API |
+| 登录窗口频繁弹出 | macOS/Linux | 使用常驻服务模式 |
 
 ## 脚本
 
