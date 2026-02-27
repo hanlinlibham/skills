@@ -49,9 +49,28 @@ df = wsi("600519.SH", "close,volume", "-0D 09:30:00", "", "BarSize=5")
 dates = tdays("20260101", "20260226")
 ```
 
-### 直连模式（Windows 推荐，全平台通用）
+### Windows 常驻服务（推荐）
 
-直接调用 WindPy，无需启动常驻服务。每次 `w.start()` 可能弹出 Wind 登录窗口。
+使用命名管道实现连接共享，避免每次登录和抢占桌面 Wind。
+
+**优点：**
+- 只登录一次，多个客户端复用连接
+- 不抢占桌面 Wind 终端
+- 支持多进程/多脚本同时查询
+
+```bash
+# 终端1: 启动服务（保持运行）
+python scripts/wind_server_win.py
+
+# 终端2/3/4...: 使用客户端查询
+python -c "from scripts.wind_client_win import wsd; print(wsd('000300.SH', 'close', '-5D'))"
+```
+
+**注意**: 需要安装 `pywin32`: `pip install pywin32 pandas`
+
+### 直连模式（Windows，简单场景）
+
+直接调用 WindPy，无需启动常驻服务。每次 `w.start()` 可能弹出 Wind 登录窗口，且会抢占桌面 Wind 终端。
 
 ```python
 from WindPy import w
