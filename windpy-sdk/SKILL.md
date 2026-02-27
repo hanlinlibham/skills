@@ -167,4 +167,4 @@ w.stop()
 - `scripts/wind_client.py` — 客户端库（macOS 直连 WindPy），提供全部 17 个函数，返回 DataFrame/list/str
 - `scripts/wind_client_win.py` — Windows 客户端（通过命名管道连接 wind_server_win.py）
 - `scripts/wind_server_win.py` — Windows 命名管道常驻服务
-- `scripts/setup_windpy.py` — WindPy 环境自动检测与配置（macOS: symlink / Windows: .pth + 注册表检测）
+- `scripts/setup_windpy.py` — WindPy 环境检测与配置（macOS: symlink 修复 / Windows: 安装提示）
