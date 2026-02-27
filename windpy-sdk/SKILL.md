@@ -9,54 +9,55 @@ allowed-tools: Bash(python*), Bash(curl*), Read, Grep, Glob
 
 # WindPy SDK
 
-## 连接方式
+## 快速开始（直接复制使用）
 
-根据操作系统选择合适的连接方式：
-
-| 平台 | 推荐模式 | 适用场景 |
-|------|----------|----------|
-| **macOS / Linux** | 常驻服务 | 自动化、批量查询、长任务 |
-| **Windows** | 直连模式 | 交互式、短任务、快速查询 |
-
-> **注意**：Windows 下常驻服务模式可能因 WindPy 线程兼容性问题导致连接不稳定，建议优先使用直连模式。
-
-### 常驻服务模式（macOS / Linux 推荐）
-
-避免每次调用弹出 Wind 登录窗口，适合自动化与批量查询。
-
-```bash
-# macOS / Linux
-python scripts/wind_server.py &
-
-# 健康检查
-curl http://localhost:18888/health
-
-# 停止（通过 HTTP）
-curl http://localhost:18888/shutdown
-```
-
-通过客户端调用，返回 pandas DataFrame：
+**重要**: 每次调用都必须包含下面的路径设置代码块，写在脚本最前面：
 
 ```python
-import sys; sys.path.insert(0, "<this_skill_dir>/scripts")
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".claude/skills/windpy-sdk/scripts") if os.path.exists(".claude") else os.path.expanduser("~/.claude/skills/windpy-sdk/scripts"))
 from wind_client import wsd, wss, wset, wsq, edb, wsi, tdays, tdaysoffset
-
-df = wsd("000300.SH", "close,pct_chg", "-30D")
-df = wss("600519.SH,000858.SZ", "sec_name,close,pe_ttm")
-df = wset("sectorconstituent", "date=20241231;windcode=000300.SH")
-df = edb("M0001383", "2024-01-01", "2024-12-31")
-df = wsi("600519.SH", "close,volume", "-0D 09:30:00", "", "BarSize=5")
-dates = tdays("20260101", "20260226")
 ```
 
-### Windows 常驻服务（推荐）
+如果上面的自动路径找不到，直接用绝对路径：
+```python
+import sys; sys.path.insert(0, "/Users/jameslee/Space/skill_repo/.claude/skills/windpy-sdk/scripts")
+from wind_client import wsd, wss, wset, wsq, edb, wsi, tdays, tdaysoffset
+```
+
+**首次调用约 10 秒**（WindPy 建立连接），后续查询毫秒级，不要因为慢就中断。请设置 `timeout=60000`。
+
+## 函数选择指南（先看这里）
+
+| 我想要... | 用这个函数 | 示例 |
+|-----------|-----------|------|
+| 一只股票的历史价格走势 | `wsd` | `wsd("600519.SH", "close,pct_chg", "-30D")` |
+| 多只股票的今日快照对比 | `wss` | `wss("600519.SH,000858.SZ", "close,pe_ttm", "tradeDate=20260226")` |
+| 指数/板块的全部成分股 | `wset` | `wset("sectorconstituent", "date=20260226;windcode=000300.SH")` |
+| 实时行情（盘中） | `wsq` | `wsq("600519.SH", "rt_last,rt_pct_chg")` |
+| GDP/CPI 等宏观数据 | `edb` | `edb("M0000612", "2024-01-01", "2025-12-31")` |
+| 分钟K线 | `wsi` | `wsi("600519.SH", "close,volume", "2026-02-26 09:30:00", "2026-02-26 15:00:00", "BarSize=5")` |
+| 交易日列表 | `tdays` | `tdays("20260101", "20260227")` |
+
+### 常见陷阱
+
+- **wss 查 PE/PB 必须带日期**：`wss(..., "pe_ttm", "tradeDate=20260226")`，不带日期会返回 None
+- **wsd 不支持多代码×多字段**：`wsd("A,B", "close,volume")` 会报错，改为 `wsd("A,B", "close")` 或 `wsd("A", "close,volume")`
+- **wsi 不支持相对日期**：`wsi(..., "-1D 09:30:00")` 会报错，必须用绝对时间 `"2026-02-26 09:30:00"`
+- **所有函数返回 pandas DataFrame**（tdays 返回 list，tdaysoffset 返回 str）
+
+## 连接方式
+
+### macOS — 直连模式
+
+客户端直接调用 WindPy，首次调用自动连接。自动检测 `isAutoLogin` 配置，确保免弹窗。
+
+**前提**：Wind API.app 已安装并运行，已勾选「自动登录」。
+环境配置问题可运行：`python scripts/setup_windpy.py --fix`
+
+### Windows — 命名管道服务（推荐）
 
 使用命名管道实现连接共享，避免每次登录和抢占桌面 Wind。
-
-**优点：**
-- 只登录一次，多个客户端复用连接
-- 不抢占桌面 Wind 终端
-- 支持多进程/多脚本同时查询
 
 ```bash
 # 终端1: 启动服务（保持运行）
@@ -68,35 +69,14 @@ python -c "from scripts.wind_client_win import wsd; print(wsd('000300.SH', 'clos
 
 **注意**: 需要安装 `pywin32`: `pip install pywin32 pandas`
 
-### 直连模式（Windows，简单场景）
+### Windows — 直连模式（简单场景）
 
-直接调用 WindPy，无需启动常驻服务。每次 `w.start()` 可能弹出 Wind 登录窗口，且会抢占桌面 Wind 终端。
+直接调用 WindPy，无需启动常驻服务。每次 `w.start()` 可能弹出 Wind 登录窗口。
 
 ```python
 from WindPy import w
 w.start()
 err, df = w.wsd("000300.SH", "close", "-30D", "", "", usedf=True)
-w.stop()
-```
-
-**Windows 完整示例**：
-
-```python
-import pandas as pd
-import numpy as np
-from WindPy import w
-
-# 连接 Wind
-w.start()
-
-# 获取数据
-err, df = w.wsd("000300.SH", "close,pct_chg", "-30D", "", "", usedf=True)
-
-# 处理数据
-if err == 0:
-    print(df)
-
-# 断开连接
 w.stop()
 ```
 
@@ -172,53 +152,19 @@ w.stop()
 - [references/options-cheatsheet.md](references/options-cheatsheet.md) — 函数 options 参数速查
 - [references/asset-type-codes.md](references/asset-type-codes.md) — 资产类型代码
 
-## 跨平台路径说明
-
-Python 中路径分隔符跨平台兼容，以下写法均可：
-
-```python
-# 正斜杠（推荐，全平台通用）
-sys.path.insert(0, ".claude/skills/windpy-sdk/scripts")
-
-# 反斜杠（Windows 也支持，但需注意转义）
-sys.path.insert(0, ".claude\\skills\\windpy-sdk\\scripts")
-
-# os.path.join（最保险）
-sys.path.insert(0, os.path.join(".claude", "skills", "windpy-sdk", "scripts"))
-```
-
-## Windows 中文乱码解决方案
-
-Windows 控制台默认使用 GBK 编码，可能导致 Wind 返回的中文数据显示为乱码。在脚本开头添加以下代码：
-
-```python
-import sys
-import io
-
-# 修复 Windows 控制台中文乱码
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-
-from WindPy import w
-w.start()
-
-# 现在中文显示正常
-err, df = w.wss('600519.SH', 'sec_name,close', '', usedf=True)
-print(df)  # 显示: 贵州茅台 而不是 ����ę́
-
-w.stop()
-```
-
 ## 故障排除
 
 | 问题 | 平台 | 解决方案 |
 |------|------|----------|
-| 常驻服务返回 502 | Windows | 改用直连模式 |
-| 连接被重置 | Windows | 改用直连模式 |
+| 首次调用慢 (~10s) | macOS | 正常，`w.start()` 仅在首次调用时触发 |
+| 登录窗口弹出 | macOS | 在 Wind 终端设置中勾选「自动登录」 |
+| `ModuleNotFoundError: No module named 'WindPy'` | macOS | 运行 `python scripts/setup_windpy.py --fix` |
+| `ModuleNotFoundError: No module named 'WindPy'` | Windows | 确保已安装 Wind 金融终端并配置 Python API |
 | 中文乱码 | Windows | 正常现象，数据获取正常，仅显示问题 |
-| `ModuleNotFoundError: No module named 'WindPy'` | 全平台 | 确保已安装 Wind 金融终端并配置 Python API |
-| 登录窗口频繁弹出 | macOS/Linux | 使用常驻服务模式 |
 
 ## 脚本
 
-- `scripts/wind_server.py` — Wind 常驻 HTTP 服务 (端口 18888，自动重连，17 个端点)
-- `scripts/wind_client.py` — 客户端库，提供全部 17 个函数，返回 DataFrame/list/str
+- `scripts/wind_client.py` — 客户端库（macOS 直连 WindPy），提供全部 17 个函数，返回 DataFrame/list/str
+- `scripts/wind_client_win.py` — Windows 客户端（通过命名管道连接 wind_server_win.py）
+- `scripts/wind_server_win.py` — Windows 命名管道常驻服务
+- `scripts/setup_windpy.py` — macOS WindPy 环境自动检测与配置（symlink 创建、连接验证）
