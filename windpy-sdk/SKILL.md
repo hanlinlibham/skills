@@ -158,8 +158,8 @@ w.stop()
 |------|------|----------|
 | 首次调用慢 (~10s) | macOS | 正常，`w.start()` 仅在首次调用时触发 |
 | 登录窗口弹出 | macOS | 在 Wind 终端设置中勾选「自动登录」 |
-| `ModuleNotFoundError: No module named 'WindPy'` | macOS | 运行 `python scripts/setup_windpy.py --fix` |
-| `ModuleNotFoundError: No module named 'WindPy'` | Windows | 确保已安装 Wind 金融终端并配置 Python API |
+| `ModuleNotFoundError: No module named 'WindPy'` | macOS | 运行 `python scripts/setup_windpy.py --fix`（自动创建 symlink） |
+| `ModuleNotFoundError: No module named 'WindPy'` | Windows | 运行 `python scripts/setup_windpy.py --fix`（自动创建 .pth 文件） |
 | 中文乱码 | Windows | 正常现象，数据获取正常，仅显示问题 |
 
 ## 脚本
@@ -167,4 +167,4 @@ w.stop()
 - `scripts/wind_client.py` — 客户端库（macOS 直连 WindPy），提供全部 17 个函数，返回 DataFrame/list/str
 - `scripts/wind_client_win.py` — Windows 客户端（通过命名管道连接 wind_server_win.py）
 - `scripts/wind_server_win.py` — Windows 命名管道常驻服务
-- `scripts/setup_windpy.py` — macOS WindPy 环境自动检测与配置（symlink 创建、连接验证）
+- `scripts/setup_windpy.py` — WindPy 环境自动检测与配置（macOS: symlink / Windows: .pth + 注册表检测）
