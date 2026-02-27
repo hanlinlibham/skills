@@ -295,6 +295,17 @@ def main():
     with open(pid_file, "w") as f:
         f.write(str(os.getpid()))
 
+    # macOS: 检测 WindPy 环境，自动修复 symlink
+    try:
+        from setup_windpy import ensure_windpy
+        ensure_windpy(auto_fix=True, verbose=True)
+    except ImportError:
+        # setup_windpy.py 不在同目录时跳过（Windows 等场景）
+        pass
+    except RuntimeError as e:
+        print(f"[wind_server] WindPy 环境配置失败: {e}", file=sys.stderr, flush=True)
+        sys.exit(1)
+
     # 先建立 Wind 连接
     print(f"[wind_server] Connecting to Wind...", flush=True)
     try:

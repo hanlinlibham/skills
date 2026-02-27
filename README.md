@@ -11,6 +11,7 @@ Claude Code 技能集 — 金融数据、文档处理、数据可视化、多代
 | [windpy-sdk](windpy-sdk/) | Wind 金融终端 Python API — 17 个函数、常驻服务、13 份参考文档，覆盖 A 股/债券/基金/期货/期权/外汇/宏观 |
 | [asset-monitor](asset-monitor/) | 资产异常波动日频监控 — Z-Score 检测偏离 > 2σ 的异常资产，自动生成 Excel 报告 |
 | [technical-analyst](technical-analyst/) | K 线图技术分析 — 趋势识别、支撑阻力位、形态分析、概率场景推演 |
+| [portfolio-analyzer](portfolio-analyzer/) | 投资组合多维分析 — 多组合 vs 基准对比、8 项风险指标、Brinson 三因素行业归因、6-sheet Excel 报告 |
 
 ### 文档与可视化
 
@@ -51,6 +52,8 @@ cp -r windpy-sdk <your-project>/.claude/skills/windpy-sdk
 ## 依赖关系
 
 ```
-asset-monitor ──uses──→ WindPy SDK ──ref──→ windpy-sdk skill
+asset-monitor ─────uses──→ WindPy SDK ──ref──→ windpy-sdk skill
+portfolio-analyzer ─uses──→ WindPy SDK ──ref──→ windpy-sdk skill
+                   └─uses──→ xlsx skill (recalc.py 公式验证)
 其余 skill 均独立，无交叉依赖
 ```
