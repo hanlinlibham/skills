@@ -48,7 +48,14 @@ def _post(endpoint: str, payload: dict) -> dict:
         )
 
 
-def _to_dataframe(result: dict) -> pd.DataFrame:
+def _is_synthetic_codes(codes: list) -> bool:
+    """判断 Codes 是否为 wset 返回的行号 ("1","2","3",...)。"""
+    if not codes:
+        return False
+    return all(isinstance(c, str) and c.isdigit() for c in codes)
+
+
+def _to_dataframe(result: dict, endpoint: str = "") -> pd.DataFrame:
     """将服务端返回的 dict 转为 DataFrame。"""
     if result.get("error"):
         raise RuntimeError(f"Wind error {result.get('code', '?')}: {result.get('message', '')}")
@@ -61,24 +68,42 @@ def _to_dataframe(result: dict) -> pd.DataFrame:
     if not data:
         return pd.DataFrame()
 
-    # wsd: 行=时间, 列=字段 (单代码) 或 交叉
-    if times and len(times) > 1:
-        df = pd.DataFrame(dict(zip(fields, data)), index=pd.to_datetime(times))
-        df.index.name = "date"
-        return df
+    # wset: Codes 为行号 ("1","2",...), 不是真实代码
+    if _is_synthetic_codes(codes) and fields:
+        return pd.DataFrame(dict(zip(fields, data)))
 
-    # wss/wsq: 行=代码, 列=字段
-    if codes:
+    # 截面接口: 即使 times 有值也应按代码索引
+    _cross_section = {"/wss", "/wsq", "/wsee", "/wsed"}
+    if endpoint in _cross_section and codes:
         df = pd.DataFrame(dict(zip(fields, data)), index=codes)
         df.index.name = "code"
         return df
 
-    # wset: 第一行是表头字段名
-    if fields:
-        df = pd.DataFrame(dict(zip(fields, data)))
+    # 判断是否为时间序列: data[0] 长度匹配 times 长度
+    row_len = len(data[0]) if data else 0
+    is_time_series = times and row_len == len(times)
+
+    if is_time_series:
+        n_codes = len(codes) if codes else 0
+        if n_codes > 1 and len(data) == n_codes:
+            # 多代码单字段: 每个 data[i] 对应一个代码
+            df = pd.DataFrame(dict(zip(codes, data)), index=pd.to_datetime(times))
+            df.index.name = "date"
+            return df
+        # 单代码 (或无代码信息): 按字段分列
+        df = pd.DataFrame(dict(zip(fields, data)), index=pd.to_datetime(times))
+        df.index.name = "date"
+        return df
+
+    # wss/wsq 截面: data[0] 长度匹配 codes 长度
+    if codes and row_len == len(codes):
+        df = pd.DataFrame(dict(zip(fields, data)), index=codes)
+        df.index.name = "code"
         return df
 
     # fallback
+    if fields:
+        return pd.DataFrame(dict(zip(fields, data)))
     return pd.DataFrame(data)
 
 
@@ -92,25 +117,25 @@ def wsd(codes: str, fields: str, begin: str = "", end: str = "", options: str = 
         "codes": codes, "fields": fields,
         "beginTime": begin, "endTime": end, "options": options,
     })
-    return _to_dataframe(result)
+    return _to_dataframe(result, "/wsd")
 
 
 def wss(codes: str, fields: str, options: str = "") -> pd.DataFrame:
     """截面快照，等价于 w.wss()。"""
     result = _post("/wss", {"codes": codes, "fields": fields, "options": options})
-    return _to_dataframe(result)
+    return _to_dataframe(result, "/wss")
 
 
 def wset(table_name: str, options: str = "") -> pd.DataFrame:
     """报表数据集，等价于 w.wset()。"""
     result = _post("/wset", {"tableName": table_name, "options": options})
-    return _to_dataframe(result)
+    return _to_dataframe(result, "/wset")
 
 
 def wsq(codes: str, fields: str, options: str = "") -> pd.DataFrame:
     """实时行情快照，等价于 w.wsq()。"""
     result = _post("/wsq", {"codes": codes, "fields": fields, "options": options})
-    return _to_dataframe(result)
+    return _to_dataframe(result, "/wsq")
 
 
 def edb(codes: str, begin: str = "", end: str = "", options: str = "") -> pd.DataFrame:
@@ -118,7 +143,7 @@ def edb(codes: str, begin: str = "", end: str = "", options: str = "") -> pd.Dat
     result = _post("/edb", {
         "codes": codes, "beginTime": begin, "endTime": end, "options": options,
     })
-    return _to_dataframe(result)
+    return _to_dataframe(result, "/edb")
 
 
 def wsi(codes: str, fields: str, begin: str = "", end: str = "", options: str = "") -> pd.DataFrame:
@@ -127,7 +152,7 @@ def wsi(codes: str, fields: str, begin: str = "", end: str = "", options: str = 
         "codes": codes, "fields": fields,
         "beginTime": begin, "endTime": end, "options": options,
     })
-    return _to_dataframe(result)
+    return _to_dataframe(result, "/wsi")
 
 
 def wst(codes: str, fields: str, begin: str = "", end: str = "", options: str = "") -> pd.DataFrame:
@@ -136,13 +161,13 @@ def wst(codes: str, fields: str, begin: str = "", end: str = "", options: str = 
         "codes": codes, "fields": fields,
         "beginTime": begin, "endTime": end, "options": options,
     })
-    return _to_dataframe(result)
+    return _to_dataframe(result, "/wst")
 
 
 def wsee(codes: str, fields: str, options: str = "") -> pd.DataFrame:
     """板块多维数据，等价于 w.wsee()。codes 为板块/指数代码。"""
     result = _post("/wsee", {"codes": codes, "fields": fields, "options": options})
-    return _to_dataframe(result)
+    return _to_dataframe(result, "/wsee")
 
 
 def wses(codes: str, fields: str, begin: str = "", end: str = "", options: str = "") -> pd.DataFrame:
@@ -151,13 +176,13 @@ def wses(codes: str, fields: str, begin: str = "", end: str = "", options: str =
         "codes": codes, "fields": fields,
         "beginTime": begin, "endTime": end, "options": options,
     })
-    return _to_dataframe(result)
+    return _to_dataframe(result, "/wses")
 
 
 def wsed(codes: str, fields: str, options: str = "") -> pd.DataFrame:
     """板块查询，等价于 w.wsed()。codes 为 SectorID。"""
     result = _post("/wsed", {"codes": codes, "fields": fields, "options": options})
-    return _to_dataframe(result)
+    return _to_dataframe(result, "/wsed")
 
 
 def tdays(begin: str = "", end: str = "", options: str = "") -> list:
@@ -171,6 +196,9 @@ def tdays(begin: str = "", end: str = "", options: str = "") -> list:
 
 def tdaysoffset(offset: int, begin: str = "", options: str = "") -> str:
     """交易日偏移，等价于 w.tdaysoffset()。返回偏移后的日期字符串。"""
+    if not begin:
+        from datetime import date
+        begin = date.today().strftime("%Y%m%d")
     result = _post("/tdaysoffset", {"offset": offset, "beginTime": begin, "options": options})
     if result.get("error"):
         raise RuntimeError(f"Wind error {result.get('code')}: {result.get('message')}")
@@ -190,25 +218,25 @@ def tdayscount(begin: str = "", end: str = "", options: str = "") -> int:
 def weqs(filtername: str, options: str = "") -> pd.DataFrame:
     """条件选股，等价于 w.weqs()。"""
     result = _post("/weqs", {"filtername": filtername, "options": options})
-    return _to_dataframe(result)
+    return _to_dataframe(result, "/weqs")
 
 
 def htocode(codes: str, sec_type: str, options: str = "") -> pd.DataFrame:
     """代码转换（名称/简称→Wind代码），等价于 w.htocode()。"""
     result = _post("/htocode", {"codes": codes, "sec_type": sec_type, "options": options})
-    return _to_dataframe(result)
+    return _to_dataframe(result, "/htocode")
 
 
 def wai(func: str, input: str, options: str = "") -> pd.DataFrame:
     """智能API，等价于 w.wai()。"""
     result = _post("/wai", {"func": func, "input": input, "options": options})
-    return _to_dataframe(result)
+    return _to_dataframe(result, "/wai")
 
 
 def wgel(funname: str, windid: str, options: str = "") -> pd.DataFrame:
     """企业库，等价于 w.wgel()。"""
     result = _post("/wgel", {"funname": funname, "windid": windid, "options": options})
-    return _to_dataframe(result)
+    return _to_dataframe(result, "/wgel")
 
 
 def health() -> dict:
