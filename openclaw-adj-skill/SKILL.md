@@ -1,5 +1,5 @@
 ---
-name: openclaw-multi-agent
+name: openclaw-adj-skill
 description: Configure and manage OpenClaw with 4 specialized agents (Shandian, Work, Research, Coding) including agent-to-agent communication, tool permissions, sandbox configuration, workspace setup, and permission management. Use when setting up multi-agent OpenClaw deployment, configuring agent permissions, creating agent memory files, managing sandbox settings, fixing permission issues, or troubleshooting agent connectivity.
 ---
 

@@ -36,6 +36,7 @@ Claude Code 技能集 — 金融数据、文档处理、数据可视化、多代
 | 技能 | 说明 |
 |------|------|
 | [openclaw-adj-skill](openclaw-adj-skill/) | OpenClaw 多代理配置 — 4 个专用代理（闪电/工作/研究/编程）协作部署 |
+| [claude-driver](claude-driver/) | Claude CLI 驱动器 — 通过 `claude -p` 驱动内层 Claude Code 执行编码任务，含宪法约束、3 套 Playbook、工件规范 |
 
 ## 使用方式
 
