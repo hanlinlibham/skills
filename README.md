@@ -27,7 +27,7 @@ Claude Code 技能集 — 金融数据、文档处理、数据可视化、多代
 
 | 技能 | 说明 |
 |------|------|
-| [humanizer](humanizer/) | AI 文本去机器痕迹 — 基于 Wikipedia 标准，修复夸张修辞、破折号滥用、AI 典型词汇等 30+ 种模式 |
+| [humanizer-zh](humanizer-zh/) | 中文去 AI 痕迹 — 交互式工作流（文体/语气/关注点选择），33 种模式分 6 个 reference 按需加载，支持学术/公文/商业报告 |
 | [skill-creator](skill-creator/) | 技能创建指南 — 帮助创建和优化 Claude Code skill |
 | [find-skills](find-skills/) | 技能发现与安装 — 从开源技能生态中搜索和安装 skill |
 
