@@ -282,6 +282,9 @@ The script returns JSON with error details:
 - Write minimal, concise Python code without unnecessary comments
 - Avoid verbose variable names and redundant operations
 - Avoid unnecessary print statements
+- **跨平台路径**: 用 `Path()` 或 `os.path.join()` 拼接路径，不硬编码 `/` 或 `\\`
+- **输出目录**: 写文件前 `Path(dir).mkdir(parents=True, exist_ok=True)` 确保目录存在
+- **文件名**: 不含 Windows 保留字符 `: * ? " < > |`
 
 **For Excel files themselves**:
 - Add comments to cells with complex formulas or important assumptions

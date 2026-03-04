@@ -286,6 +286,52 @@ with open("encrypted.pdf", "wb") as output:
 | OCR scanned PDFs | pytesseract | Convert to image first |
 | Fill PDF forms | pdf-lib or pypdf (see forms.md) | See forms.md |
 
+## Cross-Platform 路径处理
+
+PDF skill 同时使用 Python 和 JavaScript，两种语言都需要注意路径兼容性。
+
+### Python 路径规则
+
+```python
+from pathlib import Path
+
+# ❌ 硬编码斜杠
+with open("output/merged.pdf", "wb") as f: ...
+output_file = f"output/page_{i+1}.pdf"
+
+# ✅ 用 Path 或 os.path.join
+out_dir = Path("output")
+out_dir.mkdir(parents=True, exist_ok=True)
+with open(out_dir / "merged.pdf", "wb") as f: ...
+output_file = out_dir / f"page_{i+1}.pdf"
+```
+
+### JavaScript 路径规则 (pdf-lib)
+
+```javascript
+const path = require('path');
+
+// ❌ 硬编码
+const pdfBytes = fs.readFileSync('input/doc.pdf');
+fs.writeFileSync('output/modified.pdf', pdfBytes);
+
+// ✅ path.join
+const pdfBytes = fs.readFileSync(path.join('input', 'doc.pdf'));
+const outDir = path.join('output');
+if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+fs.writeFileSync(path.join(outDir, 'modified.pdf'), pdfBytes);
+```
+
+### 快速检查清单
+
+| 检查项 | 说明 |
+|--------|------|
+| Python 用 `Path()` / `os.path.join()` | 不硬编码 `/` 拼路径 |
+| JS 用 `path.join()` | 不用模板字符串拼路径 |
+| 输出目录先 `mkdir -p` | Python: `Path.mkdir(parents=True, exist_ok=True)` |
+| 文件名不含 `: * ? " < > \|` | Windows 保留字符 |
+| 含空格路径加引号 | shell 命令中 `"$PATH"` |
+
 ## Next Steps
 
 - For advanced pypdfium2 usage, see reference.md

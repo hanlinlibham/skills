@@ -27,83 +27,145 @@ Packer.toBlob(doc).then(blob => { /* download logic */ }); // Browser
 // ❌ WRONG: new TextRun("Line 1\nLine 2")
 // ✅ CORRECT: new Paragraph({ children: [new TextRun("Line 1")] }), new Paragraph({ children: [new TextRun("Line 2")] })
 
-// Basic text with all formatting options
+// Basic text with all formatting options (公文配置：仿宋 14pt 默认)
 new Paragraph({
-  alignment: AlignmentType.CENTER,
+  alignment: AlignmentType.JUSTIFIED, // 公文两端对齐
   spacing: { before: 200, after: 200 },
-  indent: { left: 720, right: 720 },
+  indent: { firstLine: 560 }, // 公文首行缩进 2em
   children: [
-    new TextRun({ text: "Bold", bold: true }),
-    new TextRun({ text: "Italic", italics: true }),
-    new TextRun({ text: "Underlined", underline: { type: UnderlineType.DOUBLE, color: "FF0000" } }),
-    new TextRun({ text: "Colored", color: "FF0000", size: 28, font: "Arial" }), // Arial default
-    new TextRun({ text: "Highlighted", highlight: "yellow" }),
-    new TextRun({ text: "Strikethrough", strike: true }),
+    new TextRun({ text: "加粗", bold: true }),
+    new TextRun({ text: "斜体", italics: true }),
+    new TextRun({ text: "下划线", underline: { type: UnderlineType.SINGLE, color: "000000" } }), // 公文用黑色
+    new TextRun({ text: "指定字号", size: 28, font: "STFangsong" }), // 仿宋 14pt
+    new TextRun({ text: "高亮", highlight: "yellow" }),
+    new TextRun({ text: "删除线", strike: true }),
     new TextRun({ text: "x2", superScript: true }),
     new TextRun({ text: "H2O", subScript: true }),
-    new TextRun({ text: "SMALL CAPS", smallCaps: true }),
     new SymbolRun({ char: "2022", font: "Symbol" }), // Bullet •
-    new SymbolRun({ char: "00A9", font: "Arial" })   // Copyright © - Arial for symbols
+    new SymbolRun({ char: "00A9", font: "STFangsong" }) // Copyright ©
   ]
 })
 ```
 
-## Styles & Professional Formatting
+## Styles — AbleMind 公文 UI 设计系统
+
+### 字体体系
+
+| 变量 | 字体栈 | 用途 |
+|------|--------|------|
+| `--gov-font-body` | STFangsong → FangSong → Fangsong SC → Noto Serif SC → serif | 正文（仿宋体） |
+| `--gov-font-heading` | Heiti SC → PingFang SC → SimHei → Noto Sans SC → sans-serif | 标题（黑体） |
+| `--gov-font-mono` | IBM Plex Mono → JetBrains Mono → monospace | UI 等宽 |
+| `--gov-font-code` | Courier New → monospace | 代码块 |
+
+在 docx-js 中使用时，font 值按优先级取第一个系统可用字体即可（macOS 优先 STFangsong / Heiti SC）。
+
+### 公文排版规范
+
+| 元素 | 字体 | 字号 | 其他 |
+|------|------|------|------|
+| 正文 | 仿宋 (STFangsong) | 14pt (size: 28) | 行距 1.5，首行缩进 2em，两端对齐 |
+| h1 | 黑体 (Heiti SC) | 16pt (size: 32) | 居中，加粗 |
+| h2 | 黑体 (Heiti SC) | 15pt (size: 30) | 左对齐，加粗 |
+| h3–h6 | 黑体 (Heiti SC) | 14pt (size: 28) | 左对齐，加粗 |
+| 表格 | 仿宋 (STFangsong) | 小四 12pt (size: 24) | 全线框，表头灰底 |
+| 代码 | Courier New | 12pt (size: 24) | 灰底框线 |
+| 链接 | 同正文 | 同正文 | 黑色下划线（公文不用彩色链接） |
+
+### 标准公文样式模板
 
 ```javascript
+// AbleMind 公文配置 — 默认样式
+const GOV_FONT_BODY = "STFangsong";     // 仿宋体（正文）
+const GOV_FONT_HEADING = "Heiti SC";     // 黑体（标题）
+const GOV_FONT_CODE = "Courier New";     // 代码块
+
 const doc = new Document({
   styles: {
-    default: { document: { run: { font: "Arial", size: 24 } } }, // 12pt default
+    default: {
+      document: {
+        run: { font: GOV_FONT_BODY, size: 28 }, // 仿宋 14pt
+        paragraph: {
+          spacing: { line: 360 },               // 行距 1.5 (240 * 1.5)
+          alignment: AlignmentType.JUSTIFIED     // 两端对齐
+        }
+      }
+    },
     paragraphStyles: [
-      // Document title style - override built-in Title style
+      // 公文标题 — 黑体 16pt 居中
       { id: "Title", name: "Title", basedOn: "Normal",
-        run: { size: 56, bold: true, color: "000000", font: "Arial" },
+        run: { size: 32, bold: true, color: "000000", font: GOV_FONT_HEADING },
         paragraph: { spacing: { before: 240, after: 120 }, alignment: AlignmentType.CENTER } },
-      // IMPORTANT: Override built-in heading styles by using their exact IDs
+      // h1 — 黑体 16pt 居中
       { id: "Heading1", name: "Heading 1", basedOn: "Normal", next: "Normal", quickFormat: true,
-        run: { size: 32, bold: true, color: "000000", font: "Arial" }, // 16pt
-        paragraph: { spacing: { before: 240, after: 240 }, outlineLevel: 0 } }, // Required for TOC
+        run: { size: 32, bold: true, color: "000000", font: GOV_FONT_HEADING },
+        paragraph: { spacing: { before: 240, after: 240, line: 360 }, alignment: AlignmentType.CENTER, outlineLevel: 0 } },
+      // h2 — 黑体 15pt 左对齐
       { id: "Heading2", name: "Heading 2", basedOn: "Normal", next: "Normal", quickFormat: true,
-        run: { size: 28, bold: true, color: "000000", font: "Arial" }, // 14pt
-        paragraph: { spacing: { before: 180, after: 180 }, outlineLevel: 1 } },
-      // Custom styles use your own IDs
-      { id: "myStyle", name: "My Style", basedOn: "Normal",
-        run: { size: 28, bold: true, color: "000000" },
-        paragraph: { spacing: { after: 120 }, alignment: AlignmentType.CENTER } }
+        run: { size: 30, bold: true, color: "000000", font: GOV_FONT_HEADING },
+        paragraph: { spacing: { before: 180, after: 180, line: 360 }, outlineLevel: 1 } },
+      // h3–h6 — 黑体 14pt 左对齐
+      { id: "Heading3", name: "Heading 3", basedOn: "Normal", next: "Normal", quickFormat: true,
+        run: { size: 28, bold: true, color: "000000", font: GOV_FONT_HEADING },
+        paragraph: { spacing: { before: 120, after: 120, line: 360 }, outlineLevel: 2 } },
+      { id: "Heading4", name: "Heading 4", basedOn: "Normal", next: "Normal", quickFormat: true,
+        run: { size: 28, bold: true, color: "000000", font: GOV_FONT_HEADING },
+        paragraph: { spacing: { before: 120, after: 120, line: 360 }, outlineLevel: 3 } },
+      // 自定义样式仍可添加
+      { id: "govNote", name: "Gov Note", basedOn: "Normal",
+        run: { size: 24, color: "333333", font: GOV_FONT_BODY },
+        paragraph: { spacing: { after: 60 } } }
     ],
-    characterStyles: [{ id: "myCharStyle", name: "My Char Style",
-      run: { color: "FF0000", bold: true, underline: { type: UnderlineType.SINGLE } } }]
+    characterStyles: [
+      // 公文链接：黑色下划线，不用彩色
+      { id: "Hyperlink", name: "Hyperlink",
+        run: { color: "000000", underline: { type: UnderlineType.SINGLE, color: "000000" } } },
+      { id: "govEmphasis", name: "Gov Emphasis",
+        run: { bold: true, font: GOV_FONT_HEADING } }
+    ]
   },
   sections: [{
-    properties: { page: { margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 } } },
+    properties: {
+      page: {
+        margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 }, // A4 标准页边距 1 英寸
+        size: { width: 11906, height: 16838 } // A4 尺寸 (210mm × 297mm in DXA)
+      }
+    },
     children: [
-      new Paragraph({ heading: HeadingLevel.TITLE, children: [new TextRun("Document Title")] }), // Uses overridden Title style
-      new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun("Heading 1")] }), // Uses overridden Heading1 style
-      new Paragraph({ style: "myStyle", children: [new TextRun("Custom paragraph style")] }),
-      new Paragraph({ children: [
-        new TextRun("Normal with "),
-        new TextRun({ text: "custom char style", style: "myCharStyle" })
-      ]})
+      new Paragraph({ heading: HeadingLevel.TITLE, children: [new TextRun("公文标题")] }),
+      new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun("一级标题")] }),
+      new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun("二级标题")] }),
+      // 正文段落 — 首行缩进 2em（仿宋14pt ≈ 560 DXA）
+      new Paragraph({
+        indent: { firstLine: 560 },
+        children: [new TextRun("正文内容，仿宋14pt，行距1.5，首行缩进2em，两端对齐。")]
+      })
     ]
   }]
 });
 ```
 
-**Professional Font Combinations:**
-- **Arial (Headers) + Arial (Body)** - Most universally supported, clean and professional
-- **Times New Roman (Headers) + Arial (Body)** - Classic serif headers with modern sans-serif body
-- **Georgia (Headers) + Verdana (Body)** - Optimized for screen reading, elegant contrast
+### 公文首行缩进说明
+- 首行缩进 2em = 2 × 字号对应的 DXA 值
+- 仿宋 14pt → `firstLine: 560` (14pt × 20 DXA/pt × 2)
+- 小四 12pt → `firstLine: 480` (12pt × 20 DXA/pt × 2)
+- 通过 `indent: { firstLine: 560 }` 设置在每个正文 Paragraph 上
+
+### 跨平台字体回退
+- **macOS**: STFangsong / Heiti SC（系统自带）
+- **Windows**: FangSong / SimHei（系统自带）
+- **Linux/CI**: Noto Serif SC / Noto Sans SC（需安装 Google Noto CJK）
+- docx-js 的 `font` 属性只写一个字体名，Word 打开时自动使用系统可用字体
 
 **Key Styling Principles:**
 - **Override built-in styles**: Use exact IDs like "Heading1", "Heading2", "Heading3" to override Word's built-in heading styles
 - **HeadingLevel constants**: `HeadingLevel.HEADING_1` uses "Heading1" style, `HeadingLevel.HEADING_2` uses "Heading2" style, etc.
 - **Include outlineLevel**: Set `outlineLevel: 0` for H1, `outlineLevel: 1` for H2, etc. to ensure TOC works correctly
-- **Use custom styles** instead of inline formatting for consistency
-- **Set a default font** using `styles.default.document.run.font` - Arial is universally supported
-- **Establish visual hierarchy** with different font sizes (titles > headers > body)
-- **Add proper spacing** with `before` and `after` paragraph spacing
-- **Use colors sparingly**: Default to black (000000) and shades of gray for titles and headings (heading 1, heading 2, etc.)
-- **Set consistent margins** (1440 = 1 inch is standard)
+- **公文字体一致性**: 正文统一仿宋，标题统一黑体，不混用其他字体
+- **公文不用彩色**: 链接、标题全部黑色，不使用蓝色超链接或灰色标题
+- **A4 纸张**: 使用 `size: { width: 11906, height: 16838 }` 设置 A4 尺寸
+- **行距 1.5**: 在 default paragraph spacing 中设置 `line: 360`
+- **首行缩进**: 正文段落添加 `indent: { firstLine: 560 }`
 
 
 ## Lists (ALWAYS USE PROPER LISTS - NEVER USE UNICODE BULLETS)
@@ -155,59 +217,63 @@ const doc = new Document({
 // ✅ ALWAYS use numbering config with LevelFormat.BULLET for real Word lists
 ```
 
-## Tables
+## Tables — 公文表格规范
 ```javascript
-// Complete table with margins, borders, headers, and bullet points
-const tableBorder = { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" };
+// 公文表格：小四 12pt 仿宋，全线框，表头灰底居中加粗
+const GOV_FONT_BODY = "STFangsong";
+const tableBorder = { style: BorderStyle.SINGLE, size: 1, color: "000000" }; // 公文用黑色全线框
 const cellBorders = { top: tableBorder, bottom: tableBorder, left: tableBorder, right: tableBorder };
 
 new Table({
   columnWidths: [4680, 4680], // ⚠️ CRITICAL: Set column widths at table level - values in DXA (twentieths of a point)
-  margins: { top: 100, bottom: 100, left: 180, right: 180 }, // Set once for all cells
+  margins: { top: 80, bottom: 80, left: 120, right: 120 }, // Set once for all cells
   rows: [
+    // 表头行：灰底居中加粗
     new TableRow({
       tableHeader: true,
       children: [
         new TableCell({
           borders: cellBorders,
-          width: { size: 4680, type: WidthType.DXA }, // ALSO set width on each cell
+          width: { size: 4680, type: WidthType.DXA },
           // ⚠️ CRITICAL: Always use ShadingType.CLEAR to prevent black backgrounds in Word.
-          shading: { fill: "D5E8F0", type: ShadingType.CLEAR }, 
+          shading: { fill: "D9D9D9", type: ShadingType.CLEAR }, // 浅灰底
           verticalAlign: VerticalAlign.CENTER,
-          children: [new Paragraph({ 
+          children: [new Paragraph({
             alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: "Header", bold: true, size: 22 })]
+            children: [new TextRun({ text: "表头", bold: true, size: 24, font: GOV_FONT_BODY })] // 小四 12pt
           })]
         }),
         new TableCell({
           borders: cellBorders,
-          width: { size: 4680, type: WidthType.DXA }, // ALSO set width on each cell
-          shading: { fill: "D5E8F0", type: ShadingType.CLEAR },
-          children: [new Paragraph({ 
+          width: { size: 4680, type: WidthType.DXA },
+          shading: { fill: "D9D9D9", type: ShadingType.CLEAR },
+          verticalAlign: VerticalAlign.CENTER,
+          children: [new Paragraph({
             alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: "Bullet Points", bold: true, size: 22 })]
+            children: [new TextRun({ text: "列标题", bold: true, size: 24, font: GOV_FONT_BODY })]
           })]
         })
       ]
     }),
+    // 数据行：小四仿宋，左对齐
     new TableRow({
       children: [
         new TableCell({
           borders: cellBorders,
-          width: { size: 4680, type: WidthType.DXA }, // ALSO set width on each cell
-          children: [new Paragraph({ children: [new TextRun("Regular data")] })]
+          width: { size: 4680, type: WidthType.DXA },
+          children: [new Paragraph({ children: [new TextRun({ text: "数据内容", size: 24, font: GOV_FONT_BODY })] })]
         }),
         new TableCell({
           borders: cellBorders,
-          width: { size: 4680, type: WidthType.DXA }, // ALSO set width on each cell
+          width: { size: 4680, type: WidthType.DXA },
           children: [
-            new Paragraph({ 
+            new Paragraph({
               numbering: { reference: "bullet-list", level: 0 },
-              children: [new TextRun("First bullet point")] 
+              children: [new TextRun({ text: "列表项一", size: 24, font: GOV_FONT_BODY })]
             }),
-            new Paragraph({ 
+            new Paragraph({
               numbering: { reference: "bullet-list", level: 0 },
-              children: [new TextRun("Second bullet point")] 
+              children: [new TextRun({ text: "列表项二", size: 24, font: GOV_FONT_BODY })]
             })
           ]
         })
@@ -332,12 +398,94 @@ new Paragraph({
 - **Tabs:** `LEFT`, `CENTER`, `RIGHT`, `DECIMAL`
 - **Symbols:** `"2022"` (•), `"00A9"` (©), `"00AE"` (®), `"2122"` (™), `"00B0"` (°), `"F070"` (✓), `"F0FC"` (✗)
 
+## Cross-Platform 路径处理（Windows / macOS / Linux）
+
+**根本原因**: Windows 用 `\` 作路径分隔符，macOS/Linux 用 `/`。在 JS 字符串中 `\` 是转义符，直接写 `"C:\Users\file"` 会被解析为 `"C:Usersile"`。
+
+### 必须遵守的规则
+
+```javascript
+const path = require('path');
+const fs = require('fs');
+
+// ❌ 硬编码斜杠 — Windows 上可能失败
+const img = fs.readFileSync("images/logo.png");
+const out = "output/report.docx";
+
+// ✅ 始终用 path.join() 拼接路径
+const img = fs.readFileSync(path.join("images", "logo.png"));
+const out = path.join("output", "report.docx");
+
+// ❌ 模板字符串拼路径
+const file = `${dir}/report.docx`;
+
+// ✅ path.join 拼接
+const file = path.join(dir, "report.docx");
+
+// ❌ __dirname + 硬编码斜杠
+const tpl = __dirname + "/templates/header.xml";
+
+// ✅ path.join(__dirname, ...)
+const tpl = path.join(__dirname, "templates", "header.xml");
+```
+
+### 输出文件名注意事项
+
+```javascript
+// ✅ 写文件前确保目录存在
+const outDir = path.join("output");
+if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+Packer.toBuffer(doc).then(buf => fs.writeFileSync(path.join(outDir, "report.docx"), buf));
+```
+
+### Python 脚本同样适用
+
+```python
+import os
+
+# ❌ 硬编码斜杠
+doc_path = "word/document.xml"
+
+# ✅ os.path.join
+doc_path = os.path.join("word", "document.xml")
+
+# ✅ pathlib (Python 3.4+) 更优雅
+from pathlib import Path
+doc_path = Path("word") / "document.xml"
+```
+
+### Shell 命令中的路径
+
+```bash
+# ✅ 正斜杠在所有平台的 shell 中都能工作（包括 Windows PowerShell/cmd）
+python ooxml/scripts/unpack.py input.docx output_dir
+
+# ⚠️ 但如果路径来自变量且含空格，务必加引号
+python "ooxml/scripts/unpack.py" "$INPUT_FILE" "$OUTPUT_DIR"
+```
+
+### 快速检查清单
+
+| 检查项 | 说明 |
+|--------|------|
+| 不出现 `"/"`  拼路径 | 用 `path.join()` / `os.path.join()` |
+| 不出现 `"\\"` 拼路径 | 同上 |
+| 不出现 `` `${x}/y` `` 拼路径 | 用 `path.join(x, "y")` |
+| `fs.mkdirSync` 带 `recursive` | 确保输出目录存在 |
+| 文件名不含 `: * ? " < > \|` | Windows 保留字符，会导致写入失败 |
+| 路径含空格时加引号 | shell 命令中 `"$PATH"` |
+
 ## Critical Issues & Common Mistakes
 - **CRITICAL: PageBreak must ALWAYS be inside a Paragraph** - standalone PageBreak creates invalid XML that Word cannot open
 - **ALWAYS use ShadingType.CLEAR for table cell shading** - Never use ShadingType.SOLID (causes black background).
 - Measurements in DXA (1440 = 1 inch) | Each table cell needs ≥1 Paragraph | TOC requires HeadingLevel styles only
-- **ALWAYS use custom styles** with Arial font for professional appearance and proper visual hierarchy
-- **ALWAYS set a default font** using `styles.default.document.run.font` - Arial recommended
+- **公文字体**: 正文用仿宋 (STFangsong)，标题用黑体 (Heiti SC)，表格用小四仿宋，代码用 Courier New
+- **公文默认字号**: 正文 14pt (size: 28)，h1 16pt (size: 32)，h2 15pt (size: 30)，h3+ 14pt (size: 28)，表格 12pt (size: 24)
+- **公文行距**: 在 default paragraph 中设置 `spacing: { line: 360 }` (1.5 倍行距)
+- **公文首行缩进**: 正文段落添加 `indent: { firstLine: 560 }`（14pt × 20 × 2）
+- **公文纸张**: A4 尺寸 `size: { width: 11906, height: 16838 }`
+- **公文链接**: 黑色下划线，覆盖 Hyperlink 字符样式为 `color: "000000"`
+- **公文表格**: 黑色全线框 `color: "000000"`，表头灰底 `fill: "D9D9D9"`
 - **ALWAYS use columnWidths array for tables** + individual cell widths for compatibility
 - **NEVER use unicode symbols for bullets** - always use proper numbering configuration with `LevelFormat.BULLET` constant (NOT the string "bullet")
 - **NEVER use \n for line breaks anywhere** - always use separate Paragraph elements for each line
@@ -348,3 +496,4 @@ new Paragraph({
 - **CRITICAL for TOC**: When using TableOfContents, headings must use HeadingLevel ONLY - do NOT add custom styles to heading paragraphs or TOC will break
 - **Tables**: Set `columnWidths` array + individual cell widths, apply borders to cells not table
 - **Set table margins at TABLE level** for consistent cell padding (avoids repetition per cell)
+- **跨平台路径**: 始终用 `path.join()` 拼接路径，不硬编码 `/` 或 `\\`。写文件前用 `fs.mkdirSync(dir, { recursive: true })` 确保目录存在

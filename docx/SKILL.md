@@ -185,6 +185,7 @@ pdftoppm -jpeg -r 150 -f 2 -l 5 document.pdf page  # Converts only pages 2-5
 - Write concise code
 - Avoid verbose variable names and redundant operations
 - Avoid unnecessary print statements
+- **跨平台路径**: 始终用 `path.join()` (JS) 或 `os.path.join()` (Python) 拼接路径，不要硬编码 `/` 或 `\\`。详见 docx-js.md「Cross-Platform 路径处理」章节
 
 ## Dependencies
 

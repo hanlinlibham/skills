@@ -469,6 +469,10 @@ pdftoppm -jpeg -r 150 -f 2 -l 5 template.pdf slide  # Converts only pages 2-5
 - Write concise code
 - Avoid verbose variable names and redundant operations
 - Avoid unnecessary print statements
+- **跨平台路径**: JS 用 `path.join()` 拼接路径，Python 用 `Path()` 或 `os.path.join()`，不硬编码 `/` 或 `\\`
+- **NODE_PATH**: 用 `path.join(os.homedir(), '.claude', 'skills-runtime', 'pptx', 'node_modules')` 而非模板字符串拼 `$HOME`
+- **输出目录**: 写文件前 `fs.mkdirSync(dir, { recursive: true })` 确保目录存在
+- **文件名**: 不含 Windows 保留字符 `: * ? " < > |`
 
 ## Dependencies
 
