@@ -20,20 +20,13 @@
 | `trade_status` | 交易状态 | wss |
 | `susp_reason` | 停牌原因 | wss |
 
-### 市值指标
-| 字段 | 含义 | 函数 |
-|------|------|------|
-| `mkt_cap` | 总市值 | wss |
-| `mkt_cap_ard` | 总市值(元) | wss |
-| `mkt_cap_float` | 流通市值(元) | wss |
-| `total_shares` | 总股本 | wss |
-| `float_a_shares` | A股流通股本 | wss |
-
 ### 区间指标
 | 字段 | 含义 | options |
 |------|------|---------|
 | `pct_chg_per` | 区间涨跌幅 | `startDate=...;endDate=...` |
 | `swing` | 振幅 | wsd |
+| `mkt_cap_ard` | 总市值(元) | wss |
+| `mkt_cap_float` | 流通市值(元) | wss |
 
 ### 实时行情 (w.wsq)
 | 字段 | 含义 |
@@ -67,61 +60,38 @@
 | `industry_sw_level2` | 申万二级行业 |
 | `industry_sw_level3` | 申万三级行业 |
 | `listdate` | 上市日期 |
-| `delist_date` | 退市日期 |
-| `ipo_date` | IPO日期 |
-| `ipo_price` | IPO发行价 |
+| `delistdate` | 退市日期 |
 | `province` | 省份 |
 | `city` | 城市 |
 | `chairman` | 董事长 |
 | `mng_ceomember` | CEO |
 | `employees` | 员工人数 |
 | `office_address` | 办公地址 |
-| `address` | 地址 |
-| `phone` | 电话 |
-| `website` | 网站 |
-| `founddate` | 成立日期 |
 | `main_business` | 主营业务 |
-| `businessscope` | 经营范围 |
-| `regcapital` | 注册资本 |
-
-### 股本结构
-| 字段 | 含义 |
-|------|------|
 | `total_shares` | 总股本 |
 | `float_a_shares` | A股流通股本 |
 | `free_float_shares` | 自由流通股本 |
-| `holder_num` | 股东户数 |
 
 ### 估值指标
 | 字段 | 含义 |
 |------|------|
 | `pe_ttm` | 市盈率(TTM) |
-| `pe_lyr` | 市盈率(LYR) |
 | `pb_lf` | 市净率(LF) |
-| `pb_mrq` | 市净率(MRQ) |
 | `ps_ttm` | 市销率(TTM) |
 | `pcf_ocf_ttm` | 市现率(TTM) |
 | `ev` | 企业价值 |
 | `ev_ebitda` | EV/EBITDA |
-| `nav` | 每股净资产(基金/股票) |
-| `dividendyield` | 股息率 |
 
 ### 盈利能力
 | 字段 | 含义 |
 |------|------|
 | `roe_ttm` | ROE(TTM) |
 | `roe_diluted` | ROE(摊薄) |
-| `roe_avg` | ROE(平均) |
 | `roa_ttm` | ROA(TTM) |
-| `roic_ttm` | ROIC(TTM) |
 | `grossprofit_margin` | 毛利率 |
 | `netprofit_margin` | 净利率 |
-| `operating_margin` | 营业利润率 |
-| `ebitda_margin` | EBITDA利润率 |
 | `eps_ttm` | 每股收益(TTM) |
-| `eps_lyr` | 每股收益(LYR) |
 | `eps_basic` | 基本每股收益 |
-| `eps_diluted` | 稀释每股收益 |
 | `bps` | 每股净资产 |
 
 ### 成长性
@@ -143,27 +113,6 @@
 | `turnover_ttm` | 总资产周转率 |
 | `invturn_ttm` | 存货周转率 |
 | `arturn_ttm` | 应收账款周转率 |
-
----
-
-## 技术指标字段 (w.wsd)
-
-| 字段 | 含义 | 默认参数 |
-|------|------|----------|
-| `MACD` | MACD指标 | (12,26,9) |
-| `RSI` | RSI相对强弱指标 | (14) |
-| `KDJ` | KDJ随机指标 | (9,3,3) |
-| `BOLL` | 布林带 | (20,2) |
-| `CCI` | CCI顺势指标 | (14) |
-| `WR` | 威廉指标 | (14) |
-
-**注意：** 默认参数版本可用，自定义参数（如 `RSI(6)`）可能需要额外权限。
-
-**使用示例：**
-```python
-err, df = w.wsd("600519.SH", "MACD,RSI,KDJ", "-30D", "", "", usedf=True)
-# 列名: ['MACD', 'RSI', 'KDJ']
-```
 
 ---
 
@@ -242,6 +191,43 @@ err, df = w.wsd("600519.SH", "MACD,RSI,KDJ", "-30D", "", "", usedf=True)
 | `cash_pay_dist_dpcp_int_exp` | 分配股利支付的现金 |
 | `net_incr_cash_cash_equ` | 现金净增加额 |
 | `free_cash_flow` | 自由现金流 |
+
+---
+
+## 基金字段 (w.wsd / w.wss)
+
+### 基金净值与规模
+| 字段 | 含义 | 函数 | 备注 |
+|------|------|------|------|
+| `nav` | 单位净值 | wsd | 基金每日单位净值 |
+| `NAV_acc` | 累计净值 | wsd | 考虑分红后的累计净值 |
+| `netasset_total` | 基金资产净值(元) | wsd | 基金总规模 |
+| `sec_name` | 基金简称 | wss/wset | |
+| `fund_setupdate` | 成立日期 | wss | |
+| `fund_maturitydate` | 到期日期 | wss | |
+| `fund_fundscale` | 基金规模(元) | wss | 需指定 rptDate |
+| `fund_manager` | 基金经理 | wss | |
+| `fund_custodianbank` | 托管银行 | wss | |
+| `fund_investtype` | 投资类型 | wss | |
+
+> **注意：** `vnetasset_total` 字段不可用（返回 -40522007），应使用 `netasset_total` 替代。
+
+### 养老金基金常用查询模板
+
+```python
+# 1. 获取养老金板块成分基金
+err, df = w.wset("sectorconstituent",
+    "date=20260307;sectorId=1000023520000000;", usedf=True)
+fund_codes = df['wind_code'].tolist()
+
+# 2. 获取基金净值时间序列（多品种单指标）
+err, df_nav = w.wsd(fund_codes, "nav",
+    "2020-01-01", "2026-03-07", "unit=1;", usedf=True)
+
+# 3. 获取基金资产净值（多品种单指标）
+err, df_na = w.wsd(fund_codes, "netasset_total",
+    "2020-01-01", "2026-03-07", "unit=1;", usedf=True)
+```
 
 ---
 
