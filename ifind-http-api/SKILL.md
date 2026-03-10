@@ -829,6 +829,58 @@ data = ifind_request("date_sequence", params)
 
 **完整代码清单、管理人对照表、THS_DS 命令转换规则见** `references/pension-fund-products.md`
 
+### 养老金产品名称检索
+
+产品代码与名称的对应关系存储在 SQLite 数据库 `data/pension_products.db` 中，提供全文搜索能力。
+
+**使用查询脚本：**
+```bash
+# 按名称搜索
+python scripts/query_pension.py search "平安稳健"
+
+# 按代码查找
+python scripts/query_pension.py code PAA001.YLJ
+
+# 按管理人筛选
+python scripts/query_pension.py manager PA
+
+# 按产品类型筛选（A=权益/B=混合/C=债券/D=货币，或子类 Ca/Cb/Cf/Cg）
+python scripts/query_pension.py type A
+
+# 组合筛选
+python scripts/query_pension.py filter --manager PA --type A
+
+# 统计概览
+python scripts/query_pension.py stats
+
+# 导出 CSV
+python scripts/query_pension.py export output.csv
+```
+
+**在代码中使用查询模块：**
+```python
+from scripts.query_pension import search, get_by_code, get_by_manager, filter_products
+
+# 全文搜索
+results = search("data/pension_products.db", "增值")
+
+# 精确查找
+product = get_by_code("data/pension_products.db", "PAA001.YLJ")
+print(product["name"])  # 产品名称
+
+# 组合筛选
+products = filter_products("data/pension_products.db", manager="PA", ptype="A")
+codes = ",".join(p["code"] for p in products)  # 拼接代码串用于 API 调用
+```
+
+**构建/更新数据库：**
+```bash
+export IFIND_REFRESH_TOKEN="your_token"
+python scripts/build_pension_db.py --source ifind/基础信息数据.md
+```
+
+数据库 Schema 见 `references/pension-db-schema.md`
+
 ---
 
 ## 注意事项
