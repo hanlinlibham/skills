@@ -1,0 +1,37 @@
+{
+  "monitor": {
+    "threshold_z": 2.0,
+    "min_trading_days": 30,
+    "lookback_period": "-252TD"
+  },
+  "assets": {
+    "sw3_industry": {
+      "enabled": true,
+      "description": "申万三级行业(259个全量)"
+    },
+    "ashare_index": {
+      "enabled": true,
+      "description": "A股主要指数(9个)"
+    },
+    "bond_index": {
+      "enabled": true,
+      "description": "中债指数(5个)"
+    },
+    "etf": {
+      "enabled": true,
+      "description": "主流ETF(8个)"
+    },
+    "commodity": {
+      "enabled": true,
+      "description": "商品期货(8个主要品种)"
+    },
+    "global_index": {
+      "enabled": true,
+      "description": "全球指数(9个主要指数)"
+    }
+  },
+  "notification": {
+    "excel": true,
+    "markdown": true
+  }
+}
