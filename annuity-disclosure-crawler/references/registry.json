@@ -14,215 +14,407 @@
   },
   "managers": [
     {
-      "slug": "m01", "short": "博时", "name": "博时基金管理有限公司", "category": "基金公司",
-      "homepage": "https://www.bosera.com", "access": "login", "strategy": "login_blocked", "item_type": "html",
+      "slug": "m01",
+      "short": "博时",
+      "name": "博时基金管理有限公司",
+      "category": "基金公司",
+      "homepage": "https://www.bosera.com",
+      "access": "login",
+      "strategy": "login_blocked",
+      "item_type": "html",
       "disclosure_url": "https://www.bosera.com/column/index.do?classid=00020002000600090001",
-      "list_url": null, "page_param": null, "file_url_pattern": null,
+      "list_url": null,
+      "page_param": null,
+      "file_url_pattern": null,
       "notes": "官网养老/年金板块的季度管理报告、动态月报、净值持仓在「年金客户专区」，需账号密码登录 trade.bosera.com，不对公众公开。客服 95105568。"
     },
     {
-      "slug": "m02", "short": "富国", "name": "富国基金管理有限公司", "category": "基金公司",
-      "homepage": "https://www.fullgoal.com.cn", "access": "public", "strategy": "detail_index", "item_type": "pdf",
+      "slug": "m02",
+      "short": "富国",
+      "name": "富国基金管理有限公司",
+      "category": "基金公司",
+      "homepage": "https://www.fullgoal.com.cn",
+      "access": "public",
+      "strategy": "detail_index",
+      "item_type": "pdf",
       "disclosure_url": "https://www.fullgoal.com.cn/main/InstiServices/Retirement/RetirementInfoDis/qynjtzgl/index.html",
       "list_url": "https://www.fullgoal.com.cn/main/InstiServices/Retirement/RetirementInfoDis/qynjtzgl/index.html",
       "page_param": null,
       "file_url_pattern": "https?://www\\.fullgoal\\.com\\.cn/(upload/fck/userfiles/file|wbs-file/ws)/[^\"'\\s]+\\.pdf",
-      "example_links": ["https://www.fullgoal.com.cn/wbs-file/ws/20250320/73059d0333984f7cb04df6ac6fe35fec.pdf"],
-      "notes": "Vue SPA 但列表/文章页 SSR，PDF 直链稳定。栏目→机构服务→养老金信息披露→企业年金投资管理。命名早期 fgjjglyxgsqynjjjtzglqk(YYYYnXjd).pdf，后期哈希名。抓取时官网疑似停留在 2024Q4。SPA 渲染不全时用 headless 兜底。"
+      "example_links": [
+        "https://www.fullgoal.com.cn/wbs-file/ws/20250320/73059d0333984f7cb04df6ac6fe35fec.pdf"
+      ],
+      "notes": "Vue SPA 但列表/文章页 SSR，PDF 直链稳定。栏目→机构服务→养老金信息披露→企业年金投资管理。命名早期 fgjjglyxgsqynjjjtzglqk(YYYYnXjd).pdf，后期哈希名。抓取时官网疑似停留在 2024Q4。SPA 渲染不全时用 headless 兜底。\n\n[2026-07-07 全量验证] crawl.py HTTP 全量抓取通过，10期(2023Q4-2026Q1)。⚠️该披露页无翻页控件，就是官网展示的全部——早于2023Q4的报告在当前官网结构下不存在任何入口，历史更早数据对公众不可得（非爬虫限制，是官网只保留近~2年展示）。"
     },
     {
-      "slug": "m03", "short": "工银瑞信", "name": "工银瑞信基金管理有限公司", "category": "基金公司",
-      "homepage": "https://www.icbcubs.com.cn", "access": "waf", "strategy": "headless", "item_type": "pdf",
+      "slug": "m03",
+      "short": "工银瑞信",
+      "name": "工银瑞信基金管理有限公司",
+      "category": "基金公司",
+      "homepage": "https://www.icbcubs.com.cn",
+      "access": "waf",
+      "strategy": "headless",
+      "item_type": "pdf",
       "disclosure_url": "https://www.icbccs.com.cn/gyrx/yljj/qynj/qynjxxpl/pages/1.html",
       "list_url": "https://www.icbccs.com.cn/gyrx/yljj/qynj/qynjxxpl/pages/{n}.html",
       "page_param": "{n}",
       "file_url_pattern": "https?://www\\.icbc(cs|ubs)\\.com\\.cn/upload/[0-9]+/[0-9]+/[^\"'\\s]+\\.pdf",
-      "example_links": ["https://www.icbccs.com.cn/upload/2427/2023/20240905qynjglqk.pdf"],
-      "notes": "因瑞信被UBS收购，域名 icbccs→icbcubs 迁移为 Vue SPA，旧直链多404。可靠来源为 Wayback：https://web.archive.org/web/{ts}id_/{原PDF直链}（快照止于2024Q2）。新站列表接口 /gyrx-article/app/article/searchPage 需未公开 POST 参数。注意别混入工商银行(受托人)口径的披露表。"
+      "example_links": [
+        "https://www.icbccs.com.cn/upload/2427/2023/20240905qynjglqk.pdf"
+      ],
+      "notes": "因瑞信被UBS收购，域名 icbccs→icbcubs 迁移为 Vue SPA，旧直链多404。可靠来源为 Wayback：https://web.archive.org/web/{ts}id_/{原PDF直链}（快照止于2024Q2）。新站列表接口 /gyrx-article/app/article/searchPage 需未公开 POST 参数。注意别混入工商银行(受托人)口径的披露表。\n\n[2026-07-07 复核] 确认 icbccs.com.cn 旧路径headless渲染下仍404(\"此次请求暂不能处理\")，域名迁移导致的失效是稳定状态非偶发。当前可靠来源仍只有 Wayback 快照(止于2024Q2)；2024Q3至今(含2026Q1)在新站(icbcubs.com.cn) SPA 后台是否已发布不明——新站文章接口需要的POST参数未逆向出来，这段历史目前对我们不可得。"
     },
     {
-      "slug": "m04", "short": "国泰", "name": "国泰基金管理有限公司", "category": "基金公司",
-      "homepage": "https://www.gtfund.com", "access": "public", "strategy": "pdf_index", "item_type": "pdf",
+      "slug": "m04",
+      "short": "国泰",
+      "name": "国泰基金管理有限公司",
+      "category": "基金公司",
+      "homepage": "https://www.gtfund.com",
+      "access": "public",
+      "strategy": "pdf_index",
+      "item_type": "pdf",
       "disclosure_url": "https://www.gtfund.com/Etrade/Report/nianjinreport/",
       "list_url": "https://www.gtfund.com/Etrade/Report/nianjinreport/",
       "page_param": null,
       "file_url_pattern": "https?://st\\.gtfund\\.com/report/[0-9]{4}/[0-9]{2}/[^\"'\\s]+\\.pdf",
-      "example_links": ["https://st.gtfund.com/report/2026/06/企业年金基金信息披露表_企业年金基金投资管理情况2026Q1.pdf"],
+      "example_links": [
+        "https://st.gtfund.com/report/2026/06/企业年金基金信息披露表_企业年金基金投资管理情况2026Q1.pdf"
+      ],
       "notes": "最省事的正面样本：单个列表页即列出从2022至今十余期，PDF 托管 st.gtfund.com/report/YYYY/MM/，文件名含中文与 YYYYQn，需 URL 编码。"
     },
     {
-      "slug": "m05", "short": "海富通", "name": "海富通基金管理有限公司", "category": "基金公司",
-      "homepage": "https://www.hftfund.com", "access": "public", "strategy": "html_index", "item_type": "html",
+      "slug": "m05",
+      "short": "海富通",
+      "name": "海富通基金管理有限公司",
+      "category": "基金公司",
+      "homepage": "https://www.hftfund.com",
+      "access": "public",
+      "strategy": "html_index",
+      "item_type": "html",
       "disclosure_url": "https://www.hftfund.com/annuity/info/index.html",
       "list_url": "https://www.hftfund.com/annuity/info/index{n}.html",
       "page_param": "{n}",
       "file_url_pattern": "https?://www\\.hftfund\\.com/contents/[0-9]{4}/[0-9]+/[^\"'\\s]+\\.html",
-      "example_links": ["https://www.hftfund.com/contents/2025/6/13-399abf20de9f46a59c180b96a9eb12f3.html"],
-      "notes": "报告为 HTML 正文页（无PDF附件），存网页存档即可。列表分页 index.html/index2.html/index3.html；列表 AJAX 渲染，静态只拿到部分历史，全量需 headless 枚举分页。detail URL 用随机哈希。"
+      "example_links": [
+        "https://www.hftfund.com/contents/2025/6/13-399abf20de9f46a59c180b96a9eb12f3.html"
+      ],
+      "notes": "报告为 HTML 正文页（无PDF附件），存网页存档即可。列表分页 index.html/index2.html/index3.html；列表 AJAX 渲染，静态只拿到部分历史，全量需 headless 枚举分页。detail URL 用随机哈希。\n\n[2026-07-07 全量验证] HTTP 静态分页拿到 2012A-2023Q2 共46期，历史深度全名录最佳。⚠️但2023Q3至今(含2026Q1最新)在静态HTML里不存在——该区间列表改为AJAX渲染，HTTP拿不到，需 crawl_headless.py 专门补最近这一段；即“旧历史全，新数据缺”，两种手段需配合使用才能补全全部期次。"
     },
     {
-      "slug": "m06", "short": "华夏", "name": "华夏基金管理有限公司", "category": "基金公司",
-      "homepage": "https://www.chinaamc.com.cn", "access": "public", "strategy": "detail_index", "item_type": "pdf",
+      "slug": "m06",
+      "short": "华夏",
+      "name": "华夏基金管理有限公司",
+      "category": "基金公司",
+      "homepage": "https://www.chinaamc.com.cn",
+      "access": "public",
+      "strategy": "detail_index",
+      "item_type": "pdf",
       "disclosure_url": "https://www.chinaamc.com.cn/yanglaojijin/nianjin/nianjinyeji/index.shtml",
       "list_url": "https://www.chinaamc.com.cn/yanglaojijin/nianjin/nianjinyeji/index_{n}.shtml",
       "page_param": "{n}",
       "file_url_pattern": "https?://www\\.chinaamc\\.com/(upload/resources/file/[^\"'\\s]+\\.pdf|front/ui/contentcore/resource/download\\?ID=[0-9]+)",
-      "example_links": ["https://www.chinaamc.com/upload/resources/file/2026/06/18/453207.pdf", "https://www.chinaamc.com/front/ui/contentcore/resource/download?ID=433263"],
+      "example_links": [
+        "https://www.chinaamc.com/upload/resources/file/2026/06/18/453207.pdf",
+        "https://www.chinaamc.com/front/ui/contentcore/resource/download?ID=433263"
+      ],
       "notes": "养老金频道→年金→年金业绩。列表每条→详情页 /c/YYYY-MM-DD/xxxxxx.shtml，内含PDF直链或 contentcore/resource/download?ID= 下载接口。覆盖2017至今，最新2026Q1。首页 index.shtml，翻页 index_1.shtml…"
     },
     {
-      "slug": "m07", "short": "嘉实", "name": "嘉实基金管理有限公司", "category": "基金公司",
-      "homepage": "https://www.jsfund.cn", "access": "public", "strategy": "spa_api", "item_type": "pdf",
+      "slug": "m07",
+      "short": "嘉实",
+      "name": "嘉实基金管理有限公司",
+      "category": "基金公司",
+      "homepage": "https://www.jsfund.cn",
+      "access": "public",
+      "strategy": "spa_api",
+      "item_type": "pdf",
       "disclosure_url": "https://www.jsfund.cn/main/pensions/AnnuityBusiness/index.shtml",
       "list_url": "https://www.jsfund.cn/main/pensions/AnnuityBusiness/index.shtml",
       "page_param": null,
       "file_url_pattern": "https?://www\\.jsfund\\.cn/ueditor/jsp/upload/file/[0-9]{8}/[0-9]+\\.pdf",
-      "api": {"endpoint": "https://www.jsfund.cn/servlet/json?random={rand}", "method": "POST", "params": {"funcNo": "741002", "type": "2", "article_id": "{id}", "rows": "1"}, "pdf_field": "content"},
-      "example_links": ["https://www.jsfund.cn/ueditor/jsp/upload/file/20260617/1781691526655083303.pdf"],
-      "notes": "Thinkive 框架 SPA。列表详情页 /main/a/{YYYYMMDD}/{articleId}.shtml 正文异步加载：POST /servlet/json funcNo=741002 取 content(内嵌PDF直链)，无需登录/签名。PDF 路径 /ueditor/jsp/upload/file/{YYYYMMDD}/{雪花id}.pdf。"
+      "api": {
+        "endpoint": "https://www.jsfund.cn/servlet/json?random={rand}",
+        "method": "POST",
+        "params": {
+          "funcNo": "741002",
+          "type": "2",
+          "article_id": "{id}",
+          "rows": "1"
+        },
+        "pdf_field": "content"
+      },
+      "example_links": [
+        "https://www.jsfund.cn/ueditor/jsp/upload/file/20260617/1781691526655083303.pdf"
+      ],
+      "notes": "Thinkive 框架 SPA。列表详情页 /main/a/{YYYYMMDD}/{articleId}.shtml 正文异步加载：POST /servlet/json funcNo=741002 取 content(内嵌PDF直链)，无需登录/签名。PDF 路径 /ueditor/jsp/upload/file/{YYYYMMDD}/{雪花id}.pdf。\n\n[2026-07-07 已知缺陷] crawl.py 只做静态HTML抓取，未真正调用 registry 里记录的 servlet/json(funcNo=741002) API，故全量运行只抓到列表首屏SSR的最新1期(2026Q1)，2025Q4及更早的历史期次未被抓取。这是 crawl.py 的功能缺口(spa_api策略未落地为真实API调用)，不是网站不可得——需在 crawl.py 里为 spa_api 策略实现 POST /servlet/json 二次取件才能补全历史。"
     },
     {
-      "slug": "m08", "short": "南方", "name": "南方基金管理股份有限公司", "category": "基金公司",
-      "homepage": "https://www.nffund.com", "access": "public", "strategy": "html_index", "item_type": "html",
+      "slug": "m08",
+      "short": "南方",
+      "name": "南方基金管理股份有限公司",
+      "category": "基金公司",
+      "homepage": "https://www.nffund.com",
+      "access": "public",
+      "strategy": "html_index",
+      "item_type": "html",
       "disclosure_url": "https://www.nffund.com/main/newCCZX/qynj/xxpl/index.shtml",
       "list_url": "https://www.nffund.com/main/newCCZX/qynj/xxpl/index_{n}.shtml",
       "page_param": "{n}",
       "file_url_pattern": "https?://www\\.nffund\\.com/main/newCCZX/qynj/xxpl/[0-9]+\\.shtml",
-      "example_links": ["https://www.nffund.com/main/newCCZX/qynj/xxpl/133350.shtml"],
-      "notes": "持仓资讯→企业年金→信息披露。报告为 HTML 正文（GBK/gb18030 编码，抓后 iconv 转 UTF-8）。无PDF。nffund.com 与 southernfund.com 同主体，直连 nffund.com 抓。"
+      "example_links": [
+        "https://www.nffund.com/main/newCCZX/qynj/xxpl/133350.shtml"
+      ],
+      "notes": "持仓资讯→企业年金→信息披露。报告为 HTML 正文（GBK/gb18030 编码，抓后 iconv 转 UTF-8）。无PDF。nffund.com 与 southernfund.com 同主体，直连 nffund.com 抓。\n\n[2026-07-07 诊断] HTTP 0命中(原始HTML里根本没有报告文本，纯AJAX注入)。headless 渲染后报告标题确实可见(2024Q3-2026Q1一路可读)，但这些条目不是 <a href> 而是无链接的文本行/onclick，故现有 headless 脚本(只扫<a>标签)仍抓不到文件直链。需针对该站定制：抓可见文本+配对同页的隐藏 data-id/onclick 参数，或抓包找底层 AJAX/JSON 接口。"
     },
     {
-      "slug": "m09", "short": "易方达", "name": "易方达基金管理有限公司", "category": "基金公司",
-      "homepage": "https://www.efunds.com.cn", "access": "public", "strategy": "detail_index", "item_type": "pdf",
+      "slug": "m09",
+      "short": "易方达",
+      "name": "易方达基金管理有限公司",
+      "category": "基金公司",
+      "homepage": "https://www.efunds.com.cn",
+      "access": "public",
+      "strategy": "detail_index",
+      "item_type": "pdf",
       "disclosure_url": "https://www.efunds.com.cn/Mobile/lm/yljxxpl/qynjtzglqk/",
       "list_url": "https://www.efunds.com.cn/Mobile/lm/yljxxpl/qynjtzglqk/",
       "page_param": null,
       "file_url_pattern": "https?://cdn\\.efunds\\.com\\.cn/owch/data/bulletin/[0-9]{8}/[^\"'\\s]+\\.pdf",
-      "example_links": ["https://cdn.efunds.com.cn/owch/data/bulletin/20260618/易方达基金管理有限公司企业年金基金投资管理情况-2026年1季度.pdf"],
+      "example_links": [
+        "https://cdn.efunds.com.cn/owch/data/bulletin/20260618/易方达基金管理有限公司企业年金基金投资管理情况-2026年1季度.pdf"
+      ],
       "notes": "机构服务→养老金信息披露→企业年金投资管理情况报告。PDF 在 CDN cdn.efunds.com.cn/owch/data/bulletin/{发布日}/，命名固定「易方达基金管理有限公司企业年金基金投资管理情况-YYYY年N季度.pdf」。列表动态，全量枚举用 headless 或按季推日期。PC 入口 /lm/jgfw/xxpl/。"
     },
     {
-      "slug": "m10", "short": "银华", "name": "银华基金管理股份有限公司", "category": "基金公司",
-      "homepage": "https://www.yhfund.com.cn", "access": "waf", "strategy": "headless", "item_type": "pdf",
+      "slug": "m10",
+      "short": "银华",
+      "name": "银华基金管理股份有限公司",
+      "category": "基金公司",
+      "homepage": "https://www.yhfund.com.cn",
+      "access": "waf",
+      "strategy": "headless",
+      "item_type": "pdf",
       "disclosure_url": "http://www.yhfund.com.cn/main/corporatePension/report/index.shtml",
       "list_url": "http://www.yhfund.com.cn/main/corporatePension/report/index.shtml",
       "page_param": null,
       "file_url_pattern": "https?://www\\.yhfund\\.com\\.cn/upload/[0-9]{8}/[^\"'\\s]+\\.pdf",
-      "example_links": ["https://www.yhfund.com.cn/upload/20240528/202405281716881071862.pdf"],
-      "notes": "报告栏目 /main/corporatePension/report/。所有动态 .shtml 页对数据中心IP被WAF拦(837B「可疑访问」页)，列表需 headless/住宅IP。但 /upload/YYYYMMDD/ 下的PDF不受WAF限，拿到直链即可curl。文件名含随机时间戳，不可猜，须从列表页取。"
+      "example_links": [
+        "https://www.yhfund.com.cn/upload/20240528/202405281716881071862.pdf"
+      ],
+      "notes": "报告栏目 /main/corporatePension/report/。所有动态 .shtml 页对数据中心IP被WAF拦(837B「可疑访问」页)，列表需 headless/住宅IP。但 /upload/YYYYMMDD/ 下的PDF不受WAF限，拿到直链即可curl。文件名含随机时间戳，不可猜，须从列表页取。\n\n[2026-07-07 复核] 确认 headless(无stealth) 仍被WAF拦：返回 `可疑访问行为被拒绝`(200状态码但内容为拦截页)。说明该WAF会指纹识别headless/自动化浏览器，不是简单等待JS渲染能绕过的，需要更强的反检测(stealth插件/真实指纹)或人工过一次拿到cookie复用。已知可行的是：若能从其它渠道(搜索引擎缓存等)拿到具体PDF直链，/upload/路径本身不拦，可以直接下载——但发现新链接这一步现阶段做不到。"
     },
     {
-      "slug": "m11", "short": "招商", "name": "招商基金管理有限公司", "category": "基金公司",
-      "homepage": "https://www.cmfchina.com", "access": "login", "strategy": "login_blocked", "item_type": "pdf",
+      "slug": "m11",
+      "short": "招商",
+      "name": "招商基金管理有限公司",
+      "category": "基金公司",
+      "homepage": "https://www.cmfchina.com",
+      "access": "login",
+      "strategy": "login_blocked",
+      "item_type": "pdf",
       "disclosure_url": "https://www.cmfchina.com/web/elderlyCare/enterprisePension/index.html",
-      "list_url": null, "page_param": null, "file_url_pattern": null,
+      "list_url": null,
+      "page_param": null,
+      "file_url_pattern": null,
       "notes": "企业年金页有「信息披露」入口，但跳转客户门户 qy.cmfchina.com/#/pensionInfo，未登录一律 redirect /login，需 fundAccount+计划号+验证码换 token 才能下载季报。公开的只有「养老金产品公告」(分红/变更等)，非季度管理报告。"
     },
     {
-      "slug": "m12", "short": "华泰资产", "name": "华泰资产管理有限公司", "category": "保险资管",
-      "homepage": "https://www.htam.com.cn", "access": "public", "strategy": "detail_index", "item_type": "pdf",
+      "slug": "m12",
+      "short": "华泰资产",
+      "name": "华泰资产管理有限公司",
+      "category": "保险资管",
+      "homepage": "https://www.htam.com.cn",
+      "access": "public",
+      "strategy": "detail_index",
+      "item_type": "pdf",
       "disclosure_url": "https://www.htam.com.cn/product/notice",
       "list_url": "https://www.htam.com.cn/product/notice",
       "page_param": null,
       "file_url_pattern": "https?://www\\.htam\\.com\\.cn/(File|Uploads/Picture)/[^\"'\\s]+\\.pdf",
-      "api": {"endpoint": "https://www.htam.com.cn/api/v1/article/{id}", "method": "GET", "pdf_field": "content"},
-      "example_links": ["https://www.htam.com.cn/File/2026/6/22/202606221619312026年1季度企业年金基金投资管理情况.pdf"],
-      "notes": "产品→公告。PDF 在 /File/YYYY/M/D/ 或 /Uploads/Picture/；详情走 /api/v1/article/{id} 返回含PDF链。文件名含中文季度标识。"
+      "api": {
+        "endpoint": "https://www.htam.com.cn/api/v1/article/{id}",
+        "method": "GET",
+        "pdf_field": "content"
+      },
+      "example_links": [
+        "https://www.htam.com.cn/File/2026/6/22/202606221619312026年1季度企业年金基金投资管理情况.pdf"
+      ],
+      "notes": "产品→公告。PDF 在 /File/YYYY/M/D/ 或 /Uploads/Picture/；详情走 /api/v1/article/{id} 返回含PDF链。文件名含中文季度标识。\n\n[2026-07-07 诊断] 与首次人工爬取(2026-07-06)相比，官网疑似已改版：headless 渲染「产品公告→养老金产品」页面正常200且标题正确，但列表区显示「暂无数据」，此前记录的 /File/...pdf 与 /api/v1/article/{id} 路径当前均取不到任何条目。需重新踩点新的筛选/接口方式，此为站点近期变动导致的临时失效，非永久不可得。"
     },
     {
-      "slug": "m13", "short": "泰康资产", "name": "泰康资产管理有限责任公司", "category": "保险资管",
-      "homepage": "https://www.taikangasset.cn", "access": "public", "strategy": "detail_index", "item_type": "docx",
+      "slug": "m13",
+      "short": "泰康资产",
+      "name": "泰康资产管理有限责任公司",
+      "category": "保险资管",
+      "homepage": "https://www.taikangasset.cn",
+      "access": "public",
+      "strategy": "detail_index",
+      "item_type": "docx",
       "disclosure_url": "https://www.taikangasset.cn/comproduct/ylbusiness/enterprisefunds/enterpriseinfo/list_294_1.html",
       "list_url": "https://www.taikangasset.cn/comproduct/ylbusiness/enterprisefunds/enterpriseinfo/list_294_{n}.html",
-      "page_param": "{n}", "list_pages_known": 6,
+      "page_param": "{n}",
+      "list_pages_known": 6,
       "file_url_pattern": "https?://files\\.taikangasset\\.cn/(service/business/website/download/[0-9A-F]{32}|customer/websiteDownload\\.do\\?id=[0-9]+)",
-      "example_links": ["https://files.taikangasset.cn/service/business/website/download/76CBEEB8DCFA465FB436646D8624585B", "https://files.taikangasset.cn/customer/websiteDownload.do?id=154963234050491764318476102"],
+      "example_links": [
+        "https://files.taikangasset.cn/service/business/website/download/76CBEEB8DCFA465FB436646D8624585B",
+        "https://files.taikangasset.cn/customer/websiteDownload.do?id=154963234050491764318476102"
+      ],
       "notes": "养老金业务→企业年金→信息披露。⚠️报告是 .docx(Word) 不是PDF，下载链接无扩展名，服务端返回Word，按 .docx 命名。列表倒序6页。新报告走 /service/business/website/download/{32位HEX}，旧报告 /customer/websiteDownload.do?id={数字}。"
     },
     {
-      "slug": "m14", "short": "长江养老", "name": "长江养老保险股份有限公司", "category": "养老保险公司",
-      "homepage": "https://www.cj-pension.com.cn", "access": "public", "strategy": "html_index", "item_type": "html",
+      "slug": "m14",
+      "short": "长江养老",
+      "name": "长江养老保险股份有限公司",
+      "category": "养老保险公司",
+      "homepage": "https://www.cj-pension.com.cn",
+      "access": "public",
+      "strategy": "html_index",
+      "item_type": "html",
       "disclosure_url": "https://www.cj-pension.com.cn/cjyl/Channel/3505179_1/qynjcpxxpl/jdxxpl",
       "list_url": "https://www.cj-pension.com.cn/cjyl/Channel/3505179_{n}/qynjcpxxpl/jdxxpl",
-      "page_param": "{n}", "list_pages_known": 11,
+      "page_param": "{n}",
+      "list_pages_known": 11,
       "file_url_pattern": "https?://www\\.cj-pension\\.com\\.cn/c/[0-9]{4}-[0-9]{2}-[0-9]{2}/[0-9]+\\.shtml",
-      "example_links": ["https://www.cj-pension.com.cn/c/2026-06-18/1884003.shtml"],
+      "example_links": [
+        "https://www.cj-pension.com.cn/c/2026-06-18/1884003.shtml"
+      ],
       "notes": "信息披露→企业年金产品信息披露→季度/年度信息披露。每季两类：①企业年金集合计划管理情况 ②企业年金基金投资管理情况。报告为 HTML(.shtml) 正文，无PDF。分11页。别混入 health.cpic.com.cn 的公司年度PDF。"
     },
     {
-      "slug": "m15", "short": "平安养老", "name": "平安养老保险股份有限公司", "category": "养老保险公司",
-      "homepage": "https://yl.pingan.com", "access": "public", "strategy": "headless", "item_type": "pdf",
+      "slug": "m15",
+      "short": "平安养老",
+      "name": "平安养老保险股份有限公司",
+      "category": "养老保险公司",
+      "homepage": "https://yl.pingan.com",
+      "access": "public",
+      "strategy": "headless",
+      "item_type": "pdf",
       "disclosure_url": "https://yl.pingan.com/branding/products",
       "list_url": "https://yl.pingan.com/branding/products",
       "page_param": null,
       "file_url_pattern": "https?://yl\\.pingan\\.com/app_upload/file/[0-9]{8}/[^\"'\\s]+\\.pdf",
-      "example_links": ["https://yl.pingan.com/app_upload/file/20251128/企业年金基金投资管理情况2025Q3_1470.pdf"],
+      "example_links": [
+        "https://yl.pingan.com/app_upload/file/20251128/企业年金基金投资管理情况2025Q3_1470.pdf"
+      ],
       "notes": "产品及方案→年金→企业年金投资管理业绩披露。PDF 在 /app_upload/file/{YYYYMMDD}/，文件名含 YYYYQn。列表页动态渲染(WebFetch只得标题)，全量枚举用 headless；PDF直链本身可匿名curl。yl.pingan.com=pension.pingan.com。"
     },
     {
-      "slug": "m16", "short": "太平养老", "name": "太平养老保险股份有限公司", "category": "养老保险公司",
-      "homepage": "http://tppension.cntaiping.com", "access": "waf", "strategy": "headless", "item_type": "pdf",
+      "slug": "m16",
+      "short": "太平养老",
+      "name": "太平养老保险股份有限公司",
+      "category": "养老保险公司",
+      "homepage": "http://tppension.cntaiping.com",
+      "access": "waf",
+      "strategy": "headless",
+      "item_type": "pdf",
       "disclosure_url": "https://tppension.cntaiping.com/njjylbz-jhxqynjjhglqk/",
       "list_url": "https://tppension.cntaiping.com/njjylbz-jhxqynjjhglqk/",
       "page_param": null,
       "file_url_pattern": null,
-      "notes": "公开信息披露→企业年金信息披露(/info-qynjxxpl/)；报告列表在 /njjylbz-jhxqynjjhglqk/（集合型企业年金计划管理情况，按季）。⚠️全域瑞数(botgate)动态JS反爬：首请求 HTTP 412，需浏览器执行 $_ts JS 挑战算 Cookie。必须 headless(playwright/真浏览器)。个案账户走登录门户 service.tppension.cntaiping.com。"
+      "notes": "公开信息披露→企业年金信息披露(/info-qynjxxpl/)；报告列表在 /njjylbz-jhxqynjjhglqk/（集合型企业年金计划管理情况，按季）。⚠️全域瑞数(botgate)动态JS反爬：首请求 HTTP 412，需浏览器执行 $_ts JS 挑战算 Cookie。必须 headless(playwright/真浏览器)。个案账户走登录门户 service.tppension.cntaiping.com。\n\n[2026-07-07 复核] 确认 headless(无stealth) 仍卡在瑞数botgate挑战：HTTP 412，body仅39字节。这是主动的JS人机验证(不只是异步渲染延迟)，需要专门的挑战破解逻辑(执行页面下发的混淆JS算出正确Cookie)，通用playwright耐心等待解决不了。当前仍无法从官网直接爬到任何报告直链。"
     },
     {
-      "slug": "m17", "short": "新华养老", "name": "新华养老保险股份有限公司", "category": "养老保险公司",
-      "homepage": "https://www.newchinapension.com", "access": "public", "strategy": "detail_index", "item_type": "pdf",
+      "slug": "m17",
+      "short": "新华养老",
+      "name": "新华养老保险股份有限公司",
+      "category": "养老保险公司",
+      "homepage": "https://www.newchinapension.com",
+      "access": "public",
+      "strategy": "detail_index",
+      "item_type": "pdf",
       "disclosure_url": "https://www.newchinapension.com/xhylbx/_300468/312175/index.html",
       "list_url": "https://www.newchinapension.com/xhylbx/_300468/312175/index_{n}.html",
       "page_param": "{n}",
       "file_url_pattern": "https?://www\\.newchinapension\\.com/xhylbx/articleFileDir/[0-9]{4}-[0-9]{2}/[0-9]+/[^\"'\\s]+\\.pdf",
-      "example_links": ["https://www.newchinapension.com/xhylbx/articleFileDir/2026-06/25/ccedf2a37bcf433f9d21a9e20eedcf0a/新华养老保险股份有限公司_企业年金基金投资管理情况2026Q1.pdf"],
+      "example_links": [
+        "https://www.newchinapension.com/xhylbx/articleFileDir/2026-06/25/ccedf2a37bcf433f9d21a9e20eedcf0a/新华养老保险股份有限公司_企业年金基金投资管理情况2026Q1.pdf"
+      ],
       "notes": "公开信息披露→企业年金投管业务信息披露，共29条，最新2026Q1。PDF直链含中文文件名(需URL编码)，命名「新华养老保险股份有限公司_企业年金基金投资管理情况YYYYQn.pdf」。另有「年度信息披露报告」为不同栏目。"
     },
     {
-      "slug": "m18", "short": "国寿养老", "name": "中国人寿养老保险股份有限公司", "category": "养老保险公司",
-      "homepage": "https://www.clpc.com.cn", "access": "public", "strategy": "detail_index", "item_type": "pdf",
+      "slug": "m18",
+      "short": "国寿养老",
+      "name": "中国人寿养老保险股份有限公司",
+      "category": "养老保险公司",
+      "homepage": "https://www.clpc.com.cn",
+      "access": "public",
+      "strategy": "detail_index",
+      "item_type": "pdf",
       "disclosure_url": "https://www.clpc.com.cn/chinalifepension/jgkh/qynj_yljcpxxpl/index.html",
       "list_url": "https://www.clpc.com.cn/chinalifepension/jgkh/qynj_yljcpxxpl/index_{n}.html",
       "page_param": "{n}",
       "file_url_pattern": "https?://www\\.clpc\\.com\\.cn/chinalifepension/articleFileDir/[0-9]{4}-[0-9]{2}/[0-9]+/[^\"'\\s]+\\.pdf",
-      "example_links": ["https://www.clpc.com.cn/chinalifepension/articleFileDir/2026-06/23/543e6a924dbd470f86913e5d570d903d.pdf"],
+      "example_links": [
+        "https://www.clpc.com.cn/chinalifepension/articleFileDir/2026-06/23/543e6a924dbd470f86913e5d570d903d.pdf"
+      ],
       "notes": "机构客户→企业年金/养老金产品信息披露。每季两份：①企业年金基金投资管理情况 ②集合型企业年金计划管理情况。PDF 在 /articleFileDir/YYYY-MM/DD/{hash}.pdf。公司层面「信息披露」(/gkxxpl/)是另一独立栏目。"
     },
     {
-      "slug": "m19", "short": "人保养老", "name": "中国人民养老保险有限责任公司", "category": "养老保险公司",
-      "homepage": "https://www.picc-pension.com.cn", "access": "public", "strategy": "html_index", "item_type": "html",
+      "slug": "m19",
+      "short": "人保养老",
+      "name": "中国人民养老保险有限责任公司",
+      "category": "养老保险公司",
+      "homepage": "https://www.picc-pension.com.cn",
+      "access": "public",
+      "strategy": "html_index",
+      "item_type": "html",
       "disclosure_url": "https://www.picc-pension.com.cn/html/category/1812/200019-1.htm",
       "list_url": "https://www.picc-pension.com.cn/html/category/1812/200019-{n}.htm",
       "page_param": "{n}",
       "file_url_pattern": "https?://www\\.picc-pension\\.com\\.cn/html/report/[0-9]{4}/[0-9]+-1\\.htm",
-      "example_links": ["https://www.picc-pension.com.cn/html/report/2606/0007-1.htm"],
-      "notes": "信息披露→企业年金信息披露，2018Q3–2026Q1 共62条，每季两类(投资管理情况/集合计划受托)。报告为内联 HTML 表格(<span id=ReportIDtext>)，无附件。⚠️注意：仅 2018Q3–2021Q4 正文含完整数据表；2022Q1 起官网正文区为空(只有标题+日期)，近四年数据未公开。"
+      "example_links": [
+        "https://www.picc-pension.com.cn/html/report/2606/0007-1.htm"
+      ],
+      "notes": "信息披露→企业年金信息披露，2018Q3–2026Q1 共62条，每季两类(投资管理情况/集合计划受托)。报告为内联 HTML 表格(<span id=ReportIDtext>)，无附件。⚠️注意：仅 2018Q3–2021Q4 正文含完整数据表；2022Q1 起官网正文区为空(只有标题+日期)，近四年数据未公开。\n\n[2026-07-07 诊断] 双重问题：①技术层——该页文章列表由站点自有的 `/asset/dyn/a_article/script.js` 挂件异步注入，headless 渲染10秒后 body 仍完全为空(0字节)，该挂件在无头环境下未能执行/未能取到数据，尚未查明原因(可能校验referrer/viewport/需真实交互)，导致列表拿不到，是当前爬虫的真实缺口；②数据层——即使解决①、能进入具体报告页，此前已确认自2022Q1起正文区`<span id=ReportIDtext>`本身为空(仅标题+日期)，即近四年官网自己就没有公开数据，这部分是官网侧的历史数据缺失，与技术能力无关，无法通过改进爬虫解决。"
     },
     {
-      "slug": "m20", "short": "建信养老金", "name": "建信养老金管理有限责任公司", "category": "养老金管理公司",
-      "homepage": "http://www.ccbpension.com", "access": "waf", "strategy": "login_blocked", "item_type": "pdf",
+      "slug": "m20",
+      "short": "建信养老金",
+      "name": "建信养老金管理有限责任公司",
+      "category": "养老金管理公司",
+      "homepage": "http://www.ccbpension.com",
+      "access": "waf",
+      "strategy": "login_blocked",
+      "item_type": "pdf",
       "disclosure_url": "http://www.ccbpension.com/xxpl_yyjnbg.html",
-      "list_url": null, "page_param": null, "file_url_pattern": null,
+      "list_url": null,
+      "page_param": null,
+      "file_url_pattern": null,
       "notes": "Vue SPA，信息披露走 /api/modules/disclosure/product/pageQuery，⚠️整站WAF(「访问拦截」页)+ API返回加密密文({jsonData:base64}，需 /api/crypto/getKey 解密)，无头浏览器也难。且官网披露的是「养老金产品」层报告，非计划层企业年金季报——计划层季报不在官网公开(报送受托人/人社部)。第三方(企查查)缓存可见零星产品年报，非官网、非季度。"
     },
     {
-      "slug": "m21", "short": "中金", "name": "中国国际金融股份有限公司", "category": "证券公司",
-      "homepage": "http://www.cicc.com", "access": "waf", "strategy": "headless", "item_type": "pdf",
+      "slug": "m21",
+      "short": "中金",
+      "name": "中国国际金融股份有限公司",
+      "category": "证券公司",
+      "homepage": "http://www.cicc.com",
+      "access": "waf",
+      "strategy": "headless",
+      "item_type": "pdf",
       "disclosure_url": "http://www.cicc.com/portal/investor/info/fnancial_cn.xhtml?columnId=718",
       "list_url": "http://www.cicc.com/portal/investor/info/fnancial_cn.xhtml?columnId=718",
       "page_param": null,
       "file_url_pattern": "https?://www\\.cicc\\.com/upload/file/[^\"'\\s]+\\.pdf",
-      "example_links": ["https://www.cicc.com/upload/file/2025/10/27/a9a6eb17-36b4-49ba-ae3f-8ec0f9c86eb5.pdf"],
-      "notes": "投资者关系→信息披露(columnId=718)。⚠️加速乐(jsl)反爬：首请求521+JS挑战，需两级cookie(__jsluid_s + __jsl_clearance_s)，第二级为混淆VM挑战，需 node/浏览器执行算出。用 headless 最稳。披露为「养老金产品管理情况报告」(产品层，中金作投管人)。"
+      "example_links": [
+        "https://www.cicc.com/upload/file/2025/10/27/a9a6eb17-36b4-49ba-ae3f-8ec0f9c86eb5.pdf"
+      ],
+      "notes": "投资者关系→信息披露(columnId=718)。⚠️加速乐(jsl)反爬：首请求521+JS挑战，需两级cookie(__jsluid_s + __jsl_clearance_s)，第二级为混淆VM挑战，需 node/浏览器执行算出。用 headless 最稳。披露为「养老金产品管理情况报告」(产品层，中金作投管人)。\n\n[2026-07-07 复核] 确认 headless(无stealth) 仍返回 HTTP 521(加速乐jsl挑战页)。此前人工爬取是用 node 手写脚本模拟执行两级混淆VM挑战才拿到 __jsl_clearance_s cookie 换到真实PDF——这是一次性手工破解，未固化进 crawl_headless.py 的通用逻辑，故本次自动化复测未能复现，仍需人工/定制脚本介入。"
     },
     {
-      "slug": "m22", "short": "中信证券", "name": "中信证券股份有限公司", "category": "证券公司",
-      "homepage": "http://www.cs.ecitic.com", "access": "public", "strategy": "html_index", "item_type": "html",
+      "slug": "m22",
+      "short": "中信证券",
+      "name": "中信证券股份有限公司",
+      "category": "证券公司",
+      "homepage": "http://www.cs.ecitic.com",
+      "access": "public",
+      "strategy": "html_index",
+      "item_type": "html",
       "disclosure_url": "http://www.cs.ecitic.com/newsite/ywzx/zcgl/qynj/xxdt/",
       "list_url": "http://www.cs.ecitic.com/newsite/ywzx/zcgl/qynj/xxdt/index_{n}.html",
       "page_param": "{n}",
       "file_url_pattern": "https?://www\\.cs\\.ecitic\\.com/newsite/ywzx/zcgl/qynj/xxdt/[0-9]{6}/t[0-9]{8}_[0-9]+\\.html",
-      "example_links": ["http://www.cs.ecitic.com/newsite/ywzx/zcgl/qynj/xxdt/202606/t20260618_1213353.html"],
+      "example_links": [
+        "http://www.cs.ecitic.com/newsite/ywzx/zcgl/qynj/xxdt/202606/t20260618_1213353.html"
+      ],
       "notes": "业务专区→资产管理→企业年金→信息动态。《中信证券企业年金基金投资管理情况》按季，报告为 HTML 正文(无PDF附件)，列表可追溯至2023Q4。www.cs.ecitic.com=www.citics.com。首页 xxdt/，翻页 index_1.html…"
     }
   ]
